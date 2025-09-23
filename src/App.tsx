@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import Layout from './components/Layout'
+import ProtectedRoute from './components/ProtectedRoute'
 import Login from './pages/Login'
 import Account from './pages/Account'
 import { ACCESS_TOKEN_STORAGE_KEY } from './lib/config'
@@ -13,9 +14,9 @@ export default function App() {
         <Route
           path="/account"
           element={
-            (typeof window !== 'undefined' && (localStorage.getItem(ACCESS_TOKEN_STORAGE_KEY) || sessionStorage.getItem(ACCESS_TOKEN_STORAGE_KEY)))
-              ? <Account />
-              : <Navigate to="/login" replace />
+            <ProtectedRoute>
+              <Account />
+            </ProtectedRoute>
           }
         />
          {/* test comment */}
