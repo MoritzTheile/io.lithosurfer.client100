@@ -1,8 +1,10 @@
 import { PropsWithChildren, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
+import { getStoredToken } from '../lib/config'
 
 export default function Layout({ children }: PropsWithChildren) {
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const isAuthenticated = typeof window !== 'undefined' && Boolean(getStoredToken())
 
   return (
     <div className="flex min-h-screen">
@@ -16,36 +18,41 @@ export default function Layout({ children }: PropsWithChildren) {
           <span className="font-semibold text-lg truncate">{sidebarOpen ? 'LithoSurfer' : 'LS'}</span>
         </div>
         <nav className="px-2 space-y-1">
-          <NavLink
-            to="/account"
-            className={({ isActive }) =>
-              `block rounded-md px-3 py-2 text-sm font-medium ${
-                isActive ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-50'
-              }`
-            }
-          >
-            Account
-          </NavLink>
-          <NavLink
-            to="/map"
-            className={({ isActive }) =>
-              `block rounded-md px-3 py-2 text-sm font-medium ${
-                isActive ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-50'
-              }`
-            }
-          >
-            Map
-          </NavLink>
-          <NavLink
-            to="/login"
-            className={({ isActive }) =>
-              `block rounded-md px-3 py-2 text-sm font-medium ${
-                isActive ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-50'
-              }`
-            }
-          >
-            Login
-          </NavLink>
+          {isAuthenticated ? (
+            <>
+              <NavLink
+                to="/account"
+                className={({ isActive }) =>
+                  `block rounded-md px-3 py-2 text-sm font-medium ${
+                    isActive ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-50'
+                  }`
+                }
+              >
+                Account
+              </NavLink>
+              <NavLink
+                to="/map"
+                className={({ isActive }) =>
+                  `block rounded-md px-3 py-2 text-sm font-medium ${
+                    isActive ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-50'
+                  }`
+                }
+              >
+                Map
+              </NavLink>
+            </>
+          ) : (
+            <NavLink
+              to="/login"
+              className={({ isActive }) =>
+                `block rounded-md px-3 py-2 text-sm font-medium ${
+                  isActive ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-50'
+                }`
+              }
+            >
+              Login
+            </NavLink>
+          )}
         </nav>
       </aside>
 
