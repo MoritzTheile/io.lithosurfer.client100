@@ -3,6 +3,7 @@ import Layout from './components/Layout'
 import ProtectedRoute from './components/ProtectedRoute'
 import Login from './pages/Login'
 import Account from './pages/Account'
+import Map from './pages/Map'
 import { ACCESS_TOKEN_STORAGE_KEY } from './lib/config'
 
 export default function App() {
@@ -16,6 +17,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <Account />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/map"
+          element={
+            <ProtectedRoute>
+              <Map />
             </ProtectedRoute>
           }
         />
