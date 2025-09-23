@@ -24,6 +24,9 @@ export function useLogout() {
   return () => {
     logout()
     qc.clear()
+    if (typeof window !== 'undefined') {
+      window.location.assign('/login')
+    }
   }
 }
 

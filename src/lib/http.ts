@@ -23,8 +23,21 @@ export async function http<T>(path: string, options: RequestInit & { method?: Ht
   })
 
   if (!response.ok) {
-    const text = await response.text().catch(() => '')
-    throw new Error(text || `Request failed with status ${response.status}`)
+    if (response.status === 401) {
+      try { localStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY) } catch {}
+      if (typeof window !== 'undefined') {
+        window.location.assign('/login')
+      }
+    }
+    let message = ''
+    try {
+      const data = await response.clone().json()
+      message = (data && (data.message || data.error_description || data.error)) || ''
+    } catch {}
+    if (!message) {
+      message = await response.text().catch(() => '')
+    }
+    throw new Error(message || `Request failed with status ${response.status}`)
   }
 
   const contentType = response.headers.get('content-type') || ''
