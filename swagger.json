@@ -1,0 +1,552 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "Lithosurfer API: Account",
+        "contact": {
+            "email": "support@lithosurfer.io"
+        },
+        "license": {
+            "name": "API License Agreement",
+            "url": "https://docs.google.com/document/d/e/2PACX-1vTyOIVPHtIUBJIuaMCkm9gG31GPEaKiIRW4GibzfgDGG-6JCh1rf8cX7CA6WYBJqUmCNST03-ORt680/pub"
+        }
+    },
+    "host": "app.ausgeochem.org",
+    "basePath": "/",
+    "tags": [
+        {
+            "name": "account-resource",
+            "description": "Account Resource"
+        },
+        {
+            "name": "user-jwt-controller",
+            "description": "User JWT Controller"
+        }
+    ],
+    "paths": {
+        "/api/account": {
+            "get": {
+                "tags": [
+                    "account-resource"
+                ],
+                "summary": "getAccount",
+                "operationId": "getAccountUsingGET",
+                "produces": [
+                    "*/*"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/UserDTO"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    }
+                },
+                "deprecated": false
+            },
+            "post": {
+                "tags": [
+                    "account-resource"
+                ],
+                "summary": "saveAccount",
+                "operationId": "saveAccountUsingPOST",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "*/*"
+                ],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "userDTO",
+                        "description": "userDTO",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/UserDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "201": {
+                        "description": "Created"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    }
+                },
+                "deprecated": false
+            }
+        },
+        "/api/account/change-password": {
+            "post": {
+                "tags": [
+                    "account-resource"
+                ],
+                "summary": "changePassword",
+                "operationId": "changePasswordUsingPOST",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "*/*"
+                ],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "passwordChangeDto",
+                        "description": "passwordChangeDto",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/PasswordChangeDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "201": {
+                        "description": "Created"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    }
+                },
+                "deprecated": false
+            }
+        },
+        "/api/account/reset-password/finish": {
+            "post": {
+                "tags": [
+                    "account-resource"
+                ],
+                "summary": "finishPasswordReset",
+                "operationId": "finishPasswordResetUsingPOST",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "*/*"
+                ],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "keyAndPassword",
+                        "description": "keyAndPassword",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/KeyAndPasswordVM"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "201": {
+                        "description": "Created"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    }
+                },
+                "deprecated": false
+            }
+        },
+        "/api/account/reset-password/init": {
+            "post": {
+                "tags": [
+                    "account-resource"
+                ],
+                "summary": "requestPasswordReset",
+                "operationId": "requestPasswordResetUsingPOST",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "*/*"
+                ],
+                "parameters": [
+                    {
+                        "name": "Origin",
+                        "in": "header",
+                        "description": "Origin",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "mail",
+                        "description": "mail",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "201": {
+                        "description": "Created"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    }
+                },
+                "deprecated": false
+            }
+        },
+        "/api/activate": {
+            "get": {
+                "tags": [
+                    "account-resource"
+                ],
+                "summary": "activateAccount",
+                "operationId": "activateAccountUsingGET",
+                "produces": [
+                    "*/*"
+                ],
+                "parameters": [
+                    {
+                        "name": "key",
+                        "in": "query",
+                        "description": "key",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    }
+                },
+                "deprecated": false
+            }
+        },
+        "/api/authenticate": {
+            "get": {
+                "tags": [
+                    "account-resource"
+                ],
+                "summary": "isAuthenticated",
+                "operationId": "isAuthenticatedUsingGET",
+                "produces": [
+                    "*/*"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    }
+                },
+                "deprecated": false
+            },
+            "post": {
+                "tags": [
+                    "user-jwt-controller"
+                ],
+                "summary": "authorize",
+                "operationId": "authorizeUsingPOST",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "*/*"
+                ],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "loginVM",
+                        "description": "loginVM",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/LoginVM"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/JWTToken"
+                        }
+                    },
+                    "201": {
+                        "description": "Created"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    }
+                },
+                "deprecated": false
+            }
+        },
+        "/api/register": {
+            "post": {
+                "tags": [
+                    "account-resource"
+                ],
+                "summary": "registerAccount",
+                "operationId": "registerAccountUsingPOST",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "*/*"
+                ],
+                "parameters": [
+                    {
+                        "name": "Origin",
+                        "in": "header",
+                        "description": "Origin",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "managedUserVM",
+                        "description": "managedUserVM",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ManagedUserVM"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    }
+                },
+                "deprecated": false
+            }
+        }
+    },
+    "definitions": {
+        "JWTToken": {
+            "type": "object",
+            "properties": {
+                "id_token": {
+                    "type": "string"
+                }
+            },
+            "title": "JWTToken"
+        },
+        "KeyAndPasswordVM": {
+            "type": "object",
+            "properties": {
+                "key": {
+                    "type": "string"
+                },
+                "newPassword": {
+                    "type": "string"
+                }
+            },
+            "title": "KeyAndPasswordVM"
+        },
+        "LoginVM": {
+            "type": "object",
+            "properties": {
+                "password": {
+                    "type": "string"
+                },
+                "rememberMe": {
+                    "type": "boolean"
+                },
+                "username": {
+                    "type": "string"
+                }
+            },
+            "title": "LoginVM"
+        },
+        "ManagedUserVM": {
+            "type": "object",
+            "properties": {
+                "activated": {
+                    "type": "boolean"
+                },
+                "authorities": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "createdBy": {
+                    "type": "string"
+                },
+                "createdDate": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "firstName": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "imageUrl": {
+                    "type": "string"
+                },
+                "langKey": {
+                    "type": "string"
+                },
+                "lastModifiedBy": {
+                    "type": "string"
+                },
+                "lastModifiedDate": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "lastName": {
+                    "type": "string"
+                },
+                "login": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            },
+            "title": "ManagedUserVM"
+        },
+        "PasswordChangeDTO": {
+            "type": "object",
+            "properties": {
+                "currentPassword": {
+                    "type": "string"
+                },
+                "newPassword": {
+                    "type": "string"
+                }
+            },
+            "title": "PasswordChangeDTO"
+        },
+        "UserDTO": {
+            "type": "object",
+            "properties": {
+                "activated": {
+                    "type": "boolean"
+                },
+                "authorities": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "createdBy": {
+                    "type": "string"
+                },
+                "createdDate": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "firstName": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "imageUrl": {
+                    "type": "string"
+                },
+                "langKey": {
+                    "type": "string"
+                },
+                "lastModifiedBy": {
+                    "type": "string"
+                },
+                "lastModifiedDate": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "lastName": {
+                    "type": "string"
+                },
+                "login": {
+                    "type": "string"
+                }
+            },
+            "title": "UserDTO"
+        }
+    }
+}
