@@ -1,5 +1,5 @@
 import { http } from '../../lib/http'
-import { ACCESS_TOKEN_STORAGE_KEY } from '../../lib/config'
+import { setStoredToken, clearStoredToken } from '../../lib/config'
 import type { JWTToken, LoginVM, UserDTO } from './types'
 
 export async function login(loginVM: LoginVM): Promise<JWTToken> {
@@ -7,12 +7,12 @@ export async function login(loginVM: LoginVM): Promise<JWTToken> {
     method: 'POST',
     body: JSON.stringify(loginVM),
   })
-  localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, token.id_token)
+  setStoredToken(token.id_token, Boolean(loginVM.rememberMe))
   return token
 }
 
 export function logout() {
-  localStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY)
+  clearStoredToken()
 }
 
 export async function getAccount(): Promise<UserDTO> {

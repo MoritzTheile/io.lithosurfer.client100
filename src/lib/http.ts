@@ -1,9 +1,9 @@
-import { API_BASE_URL, ACCESS_TOKEN_STORAGE_KEY } from './config'
+import { API_BASE_URL, ACCESS_TOKEN_STORAGE_KEY, getStoredToken } from './config'
 
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 
 function getAuthHeader() {
-  const token = localStorage.getItem(ACCESS_TOKEN_STORAGE_KEY)
+  const token = getStoredToken()
   return token ? { Authorization: `Bearer ${token}` } : {}
 }
 

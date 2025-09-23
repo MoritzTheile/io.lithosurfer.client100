@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLogin } from '../features/auth/useAuth'
+import { ACCESS_TOKEN_STORAGE_KEY } from '../lib/config'
 
 export default function Login() {
   const [username, setUsername] = useState('')
@@ -21,6 +22,14 @@ export default function Login() {
       }
     } catch (err) {
       // handled by UI state
+    }
+  }
+
+  // If already authenticated, redirect to account
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem(ACCESS_TOKEN_STORAGE_KEY) || sessionStorage.getItem(ACCESS_TOKEN_STORAGE_KEY)
+    if (token) {
+      return <div className="mx-auto max-w-md">Redirecting...</div>
     }
   }
 
