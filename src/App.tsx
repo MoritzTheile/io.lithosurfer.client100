@@ -10,6 +10,7 @@ export default function App() {
         <Route path="/" element={<Navigate to="/account" replace />} />
         <Route path="/login" element={<Login />} />
         <Route path="/account" element={<Account />} />
+         {/* test comment */}
         <Route path="*" element={<Navigate to="/account" replace />} />
       </Routes>
     </Layout>
