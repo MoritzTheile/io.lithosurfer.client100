@@ -23,12 +23,7 @@ export async function http<T>(path: string, options: RequestInit & { method?: Ht
   })
 
   if (!response.ok) {
-    if (response.status === 401) {
-      try { localStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY) } catch {}
-      if (typeof window !== 'undefined') {
-        window.location.assign('/login')
-      }
-    }
+    // Do not auto-redirect on 401; surface the error to the caller/UI.
     let message = ''
     try {
       const data = await response.clone().json()
