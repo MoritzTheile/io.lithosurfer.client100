@@ -47,17 +47,30 @@ export default function Layout({ children }: PropsWithChildren) {
                 </NavLink>
               </>
             ) : (
-              <NavLink
-                to="/login"
-                className={({ isActive }) =>
-                  `block rounded-md px-3 py-2 text-sm font-medium ${
-                    isActive ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-50'
-                  }`
-                }
-                onClick={() => setSidebarOpen(false)}
-              >
-                Login
-              </NavLink>
+              <>
+                <NavLink
+                  to="/login"
+                  className={({ isActive }) =>
+                    `block rounded-md px-3 py-2 text-sm font-medium ${
+                      isActive ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-50'
+                    }`
+                  }
+                  onClick={() => setSidebarOpen(false)}
+                >
+                  Login
+                </NavLink>
+                <NavLink
+                  to="/register"
+                  className={({ isActive }) =>
+                    `block rounded-md px-3 py-2 text-sm font-medium ${
+                      isActive ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-50'
+                    }`
+                  }
+                  onClick={() => setSidebarOpen(false)}
+                >
+                  Register
+                </NavLink>
+              </>
             )}
           </nav>
         </div>
@@ -95,16 +108,28 @@ export default function Layout({ children }: PropsWithChildren) {
               </NavLink>
             </>
           ) : (
-            <NavLink
-              to="/login"
-              className={({ isActive }) =>
-                `block rounded-md px-3 py-2 text-sm font-medium ${
-                  isActive ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-50'
-                }`
-              }
-            >
-              Login
-            </NavLink>
+            <>
+              <NavLink
+                to="/login"
+                className={({ isActive }) =>
+                  `block rounded-md px-3 py-2 text-sm font-medium ${
+                    isActive ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-50'
+                  }`
+                }
+              >
+                Login
+              </NavLink>
+              <NavLink
+                to="/register"
+                className={({ isActive }) =>
+                  `block rounded-md px-3 py-2 text-sm font-medium ${
+                    isActive ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-50'
+                  }`
+                }
+              >
+                Register
+              </NavLink>
+            </>
           )}
         </nav>
       </aside>

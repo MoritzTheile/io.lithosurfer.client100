@@ -4,6 +4,7 @@ import ProtectedRoute from './components/ProtectedRoute'
 import Login from './pages/Login'
 import Account from './pages/Account'
 import Map from './pages/Map'
+import Register from './pages/Register'
 import { ACCESS_TOKEN_STORAGE_KEY } from './lib/config'
 
 export default function App() {
@@ -12,6 +13,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/account" replace />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
         <Route
           path="/account"
           element={
