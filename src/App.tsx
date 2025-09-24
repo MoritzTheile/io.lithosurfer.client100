@@ -8,6 +8,7 @@ import Register from './pages/Register'
 import Activate from './pages/Activate'
 import ResetPassword from './pages/ResetPassword'
 import ResetPasswordFinish from './pages/ResetPasswordFinish'
+import Samples from './pages/Samples'
 import { ACCESS_TOKEN_STORAGE_KEY } from './lib/config'
 
 export default function App() {
@@ -33,6 +34,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <Map />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/samples"
+          element={
+            <ProtectedRoute>
+              <Samples />
             </ProtectedRoute>
           }
         />

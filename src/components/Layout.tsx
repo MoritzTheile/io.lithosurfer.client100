@@ -24,7 +24,7 @@ export default function Layout({ children }: PropsWithChildren) {
             {isAuthenticated ? (
               <>
                 <NavLink
-                  to="/account"
+                  to="/samples"
                   className={({ isActive }) =>
                     `block rounded-md px-3 py-2 text-sm font-medium ${
                       isActive ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-50'
@@ -32,7 +32,7 @@ export default function Layout({ children }: PropsWithChildren) {
                   }
                   onClick={() => setSidebarOpen(false)}
                 >
-                  Account
+                  Samples
                 </NavLink>
                 <NavLink
                   to="/map"
@@ -44,6 +44,17 @@ export default function Layout({ children }: PropsWithChildren) {
                   onClick={() => setSidebarOpen(false)}
                 >
                   Map
+                </NavLink>
+                <NavLink
+                  to="/account"
+                  className={({ isActive }) =>
+                    `block rounded-md px-3 py-2 text-sm font-medium ${
+                      isActive ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-50'
+                    }`
+                  }
+                  onClick={() => setSidebarOpen(false)}
+                >
+                  Account
                 </NavLink>
               </>
             ) : (
@@ -87,14 +98,14 @@ export default function Layout({ children }: PropsWithChildren) {
           {isAuthenticated ? (
             <>
               <NavLink
-                to="/account"
+                to="/samples"
                 className={({ isActive }) =>
                   `block rounded-md px-3 py-2 text-sm font-medium ${
                     isActive ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-50'
                   }`
                 }
               >
-                Account
+                Samples
               </NavLink>
               <NavLink
                 to="/map"
@@ -105,6 +116,16 @@ export default function Layout({ children }: PropsWithChildren) {
                 }
               >
                 Map
+              </NavLink>
+              <NavLink
+                to="/account"
+                className={({ isActive }) =>
+                  `block rounded-md px-3 py-2 text-sm font-medium ${
+                    isActive ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-50'
+                  }`
+                }
+              >
+                Account
               </NavLink>
             </>
           ) : (
@@ -150,7 +171,6 @@ export default function Layout({ children }: PropsWithChildren) {
           <Link to="/" className="font-semibold">
             LithoSurfer
           </Link>
-          <div className="ml-auto text-sm text-gray-500">v0.0.0</div>
         </header>
 
         {/* Main content */}
