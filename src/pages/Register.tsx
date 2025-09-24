@@ -7,6 +7,10 @@ export default function Register() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [password2, setPassword2] = useState('')
+  const [validationError, setValidationError] = useState('')
+
+  const isStrongPassword = (pw: string) => /^(?=.*\d)(?=.*[^A-Za-z0-9]).+$/.test(pw)
+  const isStrong = isStrongPassword(password)
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -21,11 +25,16 @@ export default function Register() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
     try {
+      if (!isStrong) {
+        setValidationError('Password must include at least one number and one special character.')
+        return
+      }
       await mutation.mutateAsync()
       setLogin('')
       setEmail('')
       setPassword('')
       setPassword2('')
+      setValidationError('')
       alert('Registration successful. Please check your email to activate your account.')
     } catch (err) {
       // shown below
@@ -58,10 +67,16 @@ export default function Register() {
           placeholder="Password"
           type="password"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(e) => {
+            setPassword(e.target.value)
+            if (validationError) setValidationError('')
+          }}
           autoComplete="new-password"
           required
         />
+        {password && !isStrong ? (
+          <div className="text-xs text-red-600">Password must include a number and a special character.</div>
+        ) : null}
         <input
           className="w-full rounded-md border px-3 py-2"
           placeholder="Confirm password"
@@ -77,6 +92,9 @@ export default function Register() {
         >
           {mutation.isPending ? 'Registering...' : 'Register'}
         </button>
+        {validationError ? (
+          <div className="text-sm text-red-600">{validationError}</div>
+        ) : null}
         {mutation.isError ? (
           <div className="text-sm text-red-600">{(mutation.error as Error).message}</div>
         ) : null}
