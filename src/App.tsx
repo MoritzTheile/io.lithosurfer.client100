@@ -6,6 +6,7 @@ import Account from './pages/Account'
 import Map from './pages/Map'
 import Register from './pages/Register'
 import Activate from './pages/Activate'
+import ResetPassword from './pages/ResetPassword'
 import { ACCESS_TOKEN_STORAGE_KEY } from './lib/config'
 
 export default function App() {
@@ -16,6 +17,7 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/activate" element={<Activate />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route
           path="/account"
           element={

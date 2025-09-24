@@ -87,6 +87,15 @@ export default function Login() {
           <div className="text-sm text-red-600">{(loginMutation.error as Error).message}</div>
         ) : null}
       </form>
+      <div className="text-sm">
+        <button
+          type="button"
+          className="text-blue-600 hover:underline"
+          onClick={() => navigate('/reset-password')}
+        >
+          Forgot password?
+        </button>
+      </div>
     </div>
   )
 }

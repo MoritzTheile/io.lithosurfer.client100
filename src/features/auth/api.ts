@@ -32,3 +32,11 @@ export async function activateAccount(key: string): Promise<void> {
   await http<void>(`/api/activate?${params.toString()}`, { method: 'GET' })
 }
 
+export async function requestPasswordReset(origin: string, email: string): Promise<void> {
+  await http<void>('/api/account/reset-password/init', {
+    method: 'POST',
+    headers: { Origin: origin },
+    body: JSON.stringify(email),
+  })
+}
+

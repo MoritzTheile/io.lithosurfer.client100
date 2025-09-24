@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://app.lithodat.com',
+        target: 'http://localhost:8080',
         changeOrigin: true,
         secure: true,
       },
