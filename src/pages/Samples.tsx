@@ -1,10 +1,14 @@
 import { useQuery } from '@tanstack/react-query'
 import { getSamplesWithLocations } from '../features/core/api'
+import { useState } from 'react'
 
 export default function Samples() {
+  const [page, setPage] = useState(0)
+  const [size, setSize] = useState(20)
   const { data, isLoading, isError, error } = useQuery({
-    queryKey: ['samples', 0],
-    queryFn: () => getSamplesWithLocations(0, 20, 'VIEWABLE'),
+    queryKey: ['samples', page, size],
+    queryFn: () => getSamplesWithLocations(page, size, 'VIEWABLE'),
+    keepPreviousData: true,
   })
 
   return (
@@ -26,7 +30,7 @@ export default function Samples() {
               </tr>
             </thead>
             <tbody>
-              {(data ?? []).map((row: any, idx: number) => {
+              {(data?.items ?? []).map((row: any, idx: number) => {
                 const id = row?.sampleDTO?.id ?? row?.id ?? idx
                 const name = row?.sampleDTO?.name ?? row?.shortName ?? ''
                 const lat = row?.locationDTO?.lat
@@ -44,8 +48,71 @@ export default function Samples() {
               })}
             </tbody>
           </table>
+          <Pager
+            page={page}
+            size={size}
+            totalCount={data?.totalCount ?? 0}
+            onPageChange={setPage}
+            onSizeChange={(v) => {
+              setSize(v)
+              setPage(0)
+            }}
+          />
         </div>
       )}
+    </div>
+  )
+}
+
+function Pager({ page, size, totalCount, onPageChange, onSizeChange }: { page: number, size: number, totalCount: number, onPageChange: (p: number) => void, onSizeChange: (s: number) => void }) {
+  const totalPages = Math.max(1, Math.ceil(totalCount / size))
+  const canPrev = page > 0
+  const canNext = page + 1 < totalPages
+  return (
+    <div className="flex items-center justify-between p-3 border-t bg-gray-50">
+      <div className="text-xs text-gray-600">{totalCount ? `Total: ${totalCount.toLocaleString()} samples` : 'Total: unknown'}</div>
+      <div className="flex items-center gap-2">
+        <button
+          className="rounded-md border px-3 py-1 text-sm disabled:opacity-50"
+          onClick={() => onPageChange(0)}
+          disabled={!canPrev}
+        >
+          « First
+        </button>
+        <button
+          className="rounded-md border px-3 py-1 text-sm disabled:opacity-50"
+          onClick={() => onPageChange(page - 1)}
+          disabled={!canPrev}
+        >
+          ‹ Prev
+        </button>
+        <div className="text-sm">
+          Page {page + 1} of {totalPages}
+        </div>
+        <button
+          className="rounded-md border px-3 py-1 text-sm disabled:opacity-50"
+          onClick={() => onPageChange(page + 1)}
+          disabled={!canNext}
+        >
+          Next ›
+        </button>
+        <button
+          className="rounded-md border px-3 py-1 text-sm disabled:opacity-50"
+          onClick={() => onPageChange(totalPages - 1)}
+          disabled={!canNext}
+        >
+          Last »
+        </button>
+        <select
+          className="ml-2 rounded-md border px-2 py-1 text-sm"
+          value={size}
+          onChange={(e) => onSizeChange(Number(e.target.value))}
+        >
+          {[10, 20, 50, 100].map((n) => (
+            <option key={n} value={n}>{n}/page</option>
+          ))}
+        </select>
+      </div>
     </div>
   )
 }
