@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { activateAccount } from '../features/auth/api'
 
@@ -7,9 +7,12 @@ export default function Activate() {
   const navigate = useNavigate()
   const [status, setStatus] = useState<'idle' | 'success' | 'error' | 'pending'>('pending')
   const [message, setMessage] = useState('Activating your account...')
+  const didRunRef = useRef(false)
+  const key = searchParams.get('key') || ''
 
   useEffect(() => {
-    const key = searchParams.get('key') || ''
+    if (didRunRef.current) return
+    didRunRef.current = true
     if (!key) {
       setStatus('error')
       setMessage('Invalid Activation Link')
@@ -22,10 +25,10 @@ export default function Activate() {
         setMessage('Your account has been activated')
       } catch (err) {
         setStatus('error')
-        setMessage('Invalid Activation Link')
+        setMessage('Invalid Activation Link (Already activated?)')
       }
     })()
-  }, [searchParams])
+  }, [])
 
   function onOk() {
     navigate('/login', { replace: true })
