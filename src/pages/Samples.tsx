@@ -1,19 +1,37 @@
 import { useQuery } from '@tanstack/react-query'
 import { getSamplesWithLocations } from '../features/core/api'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 export default function Samples() {
   const [page, setPage] = useState(0)
   const [size, setSize] = useState(20)
+  const [query, setQuery] = useState('')
+  const [debouncedQuery, setDebouncedQuery] = useState('')
+
+  useEffect(() => {
+    const id = setTimeout(() => setDebouncedQuery(query.trim()), 300)
+    return () => clearTimeout(id)
+  }, [query])
   const { data, isLoading, isError, error } = useQuery({
-    queryKey: ['samples', page, size],
-    queryFn: () => getSamplesWithLocations(page, size, 'VIEWABLE'),
+    queryKey: ['samples', page, size, debouncedQuery],
+    queryFn: () => getSamplesWithLocations(page, size, 'VIEWABLE', debouncedQuery || undefined),
     keepPreviousData: true,
   })
 
   return (
     <div className="space-y-4">
       <h1 className="text-2xl font-semibold">Samples</h1>
+      <div className="flex items-center gap-2">
+        <input
+          className="rounded-md border px-3 py-2 w-full max-w-xs"
+          placeholder="Search name..."
+          value={query}
+          onChange={(e) => {
+            setQuery(e.target.value)
+            setPage(0)
+          }}
+        />
+      </div>
       {isLoading ? (
         <div>Loading samples...</div>
       ) : isError ? (
