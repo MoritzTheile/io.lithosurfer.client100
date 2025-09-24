@@ -22,3 +22,10 @@ export type UserDTO = {
   langKey?: string
 }
 
+export type RegisterVM = {
+  login: string
+  email: string
+  password: string
+  langKey: string
+}
+

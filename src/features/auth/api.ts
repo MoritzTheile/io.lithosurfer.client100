@@ -1,6 +1,6 @@
 import { http } from '../../lib/http'
 import { setStoredToken, clearStoredToken } from '../../lib/config'
-import type { JWTToken, LoginVM, UserDTO } from './types'
+import type { JWTToken, LoginVM, UserDTO, RegisterVM } from './types'
 
 export async function login(loginVM: LoginVM): Promise<JWTToken> {
   const token = await http<JWTToken>('/api/authenticate', {
@@ -17,5 +17,18 @@ export function logout() {
 
 export async function getAccount(): Promise<UserDTO> {
   return http<UserDTO>('/api/account', { method: 'GET' })
+}
+
+export async function register(origin: string, payload: RegisterVM): Promise<void> {
+  await http<void>('/api/register', {
+    method: 'POST',
+    headers: { Origin: origin },
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function activateAccount(key: string): Promise<void> {
+  const params = new URLSearchParams({ key })
+  await http<void>(`/api/activate?${params.toString()}`, { method: 'GET' })
 }
 
