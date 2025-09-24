@@ -40,3 +40,10 @@ export async function requestPasswordReset(origin: string, email: string): Promi
   })
 }
 
+export async function finishPasswordReset(key: string, newPassword: string): Promise<void> {
+  await http<void>('/api/account/reset-password/finish', {
+    method: 'POST',
+    body: JSON.stringify({ key, newPassword }),
+  })
+}
+
