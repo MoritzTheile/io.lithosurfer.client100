@@ -84,7 +84,7 @@ export default function Login() {
           {loginMutation.isPending ? 'Signing in...' : 'Sign in'}
         </button>
         {loginMutation.isError ? (
-          <div className="text-sm text-red-600">{(loginMutation.error as Error).message}</div>
+          <ErrorDisplay error={loginMutation.error as any} />
         ) : null}
       </form>
       <div className="text-sm">
@@ -98,6 +98,40 @@ export default function Login() {
       </div>
     </div>
   )
+}
+
+function ErrorDisplay({ error }: { error: any }) {
+  const [open, setOpen] = useState(false)
+  const responseData = error?.responseData
+  const detail = responseData?.detail
+  const hideInline = detail === 'Bad credentials'
+  const message = (error as Error)?.message
+  const formatted = responseData ? JSON.stringify(responseData, null, 2) : ''
+
+  if (hideInline && formatted) {
+    return (
+      <div className="text-sm text-red-600">
+        <div className="flex items-center gap-2">
+          <span>Authentication failed</span>
+          <button
+            type="button"
+            className="rounded border px-2 py-0.5 text-xs text-gray-700 bg-white hover:bg-gray-50"
+            onClick={() => setOpen((v) => !v)}
+            aria-expanded={open}
+            aria-controls="auth-error-details"
+          >
+            {open ? 'Hide details' : 'Show details'}
+          </button>
+        </div>
+        {open ? (
+          <pre id="auth-error-details" className="mt-2 whitespace-pre p-2 rounded-md border bg-white text-[12px] font-mono max-h-48 overflow-auto">
+{formatted}
+          </pre>
+        ) : null}
+      </div>
+    )
+  }
+  return <div className="text-sm text-red-600">{message}</div>
 }
 
 

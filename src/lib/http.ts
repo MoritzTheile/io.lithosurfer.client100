@@ -25,14 +25,21 @@ export async function http<T>(path: string, options: RequestInit & { method?: Ht
   if (!response.ok) {
     // Do not auto-redirect on 401; surface the error to the caller/UI.
     let message = ''
+    let data: any = undefined
     try {
-      const data = await response.clone().json()
-      message = (data && (data.message || data.error_description || data.error)) || ''
+      data = await response.clone().json()
+      const baseMessage = (data && (data.message || data.title || data.error_description || data.error)) || ''
+      const detail = data && (data.detail || data.path ? `${data.detail || ''}` : '')
+      message = [baseMessage, detail].filter(Boolean).join(' - ')
     } catch {}
     if (!message) {
       message = await response.text().catch(() => '')
     }
-    throw new Error(message || `Request failed with status ${response.status}`)
+    const error: any = new Error(message || `Request failed with status ${response.status}`)
+    if (data !== undefined) {
+      error.responseData = data
+    }
+    throw error
   }
 
   const contentType = response.headers.get('content-type') || ''
