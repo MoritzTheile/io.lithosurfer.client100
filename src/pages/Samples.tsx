@@ -1,6 +1,8 @@
-import { useQuery } from '@tanstack/react-query'
-import { getSamplesWithLocations } from '../features/core/api'
+import { useQuery, keepPreviousData } from '@tanstack/react-query'
+import { getSamplesWithLocations, type SampleWithLocation } from '../features/core/api'
 import { useState, useEffect } from 'react'
+
+type SamplesResult = { items: SampleWithLocation[]; totalCount: number }
 
 export default function Samples() {
   const [page, setPage] = useState(0)
@@ -12,10 +14,10 @@ export default function Samples() {
     const id = setTimeout(() => setDebouncedQuery(query.trim()), 300)
     return () => clearTimeout(id)
   }, [query])
-  const { data, isLoading, isError, error } = useQuery({
+  const { data, isLoading, isError, error } = useQuery<SamplesResult>({
     queryKey: ['samples', page, size, debouncedQuery],
     queryFn: () => getSamplesWithLocations(page, size, 'VIEWABLE', debouncedQuery || undefined),
-    keepPreviousData: true,
+    placeholderData: keepPreviousData,
   })
 
   return (

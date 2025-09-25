@@ -2,25 +2,23 @@ import { API_BASE_URL, ACCESS_TOKEN_STORAGE_KEY, getStoredToken } from './config
 
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 
-function getAuthHeader() {
+function buildHeaders(init?: HeadersInit): Headers {
+  const headers = new Headers(init)
+  headers.set('Content-Type', 'application/json')
   const token = getStoredToken()
-  return token ? { Authorization: `Bearer ${token}` } : {}
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`)
+  }
+  return headers
 }
 
 export async function http<T>(path: string, options: RequestInit & { method?: HttpMethod } = {}): Promise<T> {
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-    ...getAuthHeader(),
-    ...(options.headers || {}),
-  }
+  const headers = buildHeaders(options.headers)
 
   const isRelative = path.startsWith('/')
   const url = import.meta.env.DEV && isRelative ? path : `${API_BASE_URL}${path}`
 
-  const response = await fetch(url, {
-    ...options,
-    headers,
-  })
+  const response = await fetch(url, { ...options, headers })
 
   if (!response.ok) {
     // Do not auto-redirect on 401; surface the error to the caller/UI.
@@ -50,19 +48,12 @@ export async function http<T>(path: string, options: RequestInit & { method?: Ht
 }
 
 export async function httpWithResponse<T>(path: string, options: RequestInit & { method?: HttpMethod } = {}): Promise<{ data: T, response: Response }> {
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-    ...getAuthHeader(),
-    ...(options.headers || {}),
-  }
+  const headers = buildHeaders(options.headers)
 
   const isRelative = path.startsWith('/')
   const url = import.meta.env.DEV && isRelative ? path : `${API_BASE_URL}${path}`
 
-  const response = await fetch(url, {
-    ...options,
-    headers,
-  })
+  const response = await fetch(url, { ...options, headers })
 
   if (!response.ok) {
     let message = ''
