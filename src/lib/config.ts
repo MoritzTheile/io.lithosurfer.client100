@@ -1,4 +1,4 @@
-export const API_BASE_URL = 'https://app.lithodat.com'
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL as string
 
 export const ACCESS_TOKEN_STORAGE_KEY = 'ls_access_token'
 
