@@ -8,7 +8,7 @@ export default function Samples() {
   const { page, size, searchText, debouncedSearchText, setPage, setSize, setSearchText } = useSampleFilter()
   const { data, isLoading, isError, error } = useQuery<SamplesResult>({
     queryKey: ['samples', page, size, debouncedSearchText],
-    queryFn: () => getSamplesWithLocations(page, size, 'VIEWABLE', debouncedSearchText || undefined),
+    queryFn: () => getSamplesWithLocations(page, size, { allowedAccess: 'VIEWABLE', nameContains: debouncedSearchText || undefined }),
     placeholderData: keepPreviousData,
   })
 
