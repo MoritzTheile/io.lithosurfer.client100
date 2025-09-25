@@ -8,10 +8,12 @@ type SampleFilterState = {
   page: number
   size: number
   allowedAccess?: AllowedAccess
+  createdByIdEquals?: string
   setSearchText: (v: string) => void
   setPage: (v: number) => void
   setSize: (v: number) => void
   setAllowedAccess: (v: AllowedAccess | undefined) => void
+  setCreatedByIdEquals: (v: string | undefined) => void
 }
 
 const SampleFilterContext = createContext<SampleFilterState | undefined>(undefined)
@@ -22,6 +24,7 @@ export function SampleFilterProvider({ children }: PropsWithChildren) {
   const [page, setPage] = useState<number>(0)
   const [size, setSize] = useState<number>(20)
   const [allowedAccess, setAllowedAccess] = useState<AllowedAccess | undefined>('VIEWABLE')
+  const [createdByIdEquals, setCreatedByIdEquals] = useState<string | undefined>(undefined)
 
   useEffect(() => {
     const id = setTimeout(() => setDebouncedSearchText(searchText.trim()), 300)
@@ -34,6 +37,7 @@ export function SampleFilterProvider({ children }: PropsWithChildren) {
     page,
     size,
     allowedAccess,
+    createdByIdEquals,
     setSearchText: (v: string) => {
       setSearchText(v)
       setPage(0)
@@ -44,7 +48,11 @@ export function SampleFilterProvider({ children }: PropsWithChildren) {
       setPage(0)
     },
     setAllowedAccess,
-  }), [searchText, debouncedSearchText, page, size, allowedAccess])
+    setCreatedByIdEquals: (v: string | undefined) => {
+      setCreatedByIdEquals(v)
+      setPage(0)
+    },
+  }), [searchText, debouncedSearchText, page, size, allowedAccess, createdByIdEquals])
 
   return <SampleFilterContext.Provider value={value}>{children}</SampleFilterContext.Provider>
 }

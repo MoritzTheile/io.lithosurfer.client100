@@ -10,7 +10,7 @@ mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN as string
 export default function Map() {
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<mapboxgl.Map | null>(null)
-  const { debouncedSearchText, allowedAccess } = useSampleFilter()
+  const { debouncedSearchText, allowedAccess, createdByIdEquals } = useSampleFilter()
 
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return
@@ -29,6 +29,7 @@ export default function Map() {
         const geojson = await getSamplesGeoFeatureCollection({
           nameContains: debouncedSearchText || undefined,
           allowedAccess: allowedAccess,
+          createdByIdEquals,
         })
         if (!mapRef.current) return
         if (!mapRef.current.getSource('samples')) {
@@ -75,6 +76,7 @@ export default function Map() {
         const geojson = await getSamplesGeoFeatureCollection({
           nameContains: debouncedSearchText || undefined,
           allowedAccess: allowedAccess,
+          createdByIdEquals,
         })
         const map = mapRef.current
         if (!map) return
@@ -85,7 +87,7 @@ export default function Map() {
         console.error('Failed to refresh GeoJSON', e)
       }
     })()
-  }, [debouncedSearchText, allowedAccess])
+  }, [debouncedSearchText, allowedAccess, createdByIdEquals])
 
   return (
     <div className="space-y-4">

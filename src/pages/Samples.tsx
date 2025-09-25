@@ -6,10 +6,10 @@ import SampleFilterBar from '../components/SampleFilterBar'
 type SamplesResult = { items: SampleWithLocation[]; totalCount: number }
 
 export default function Samples() {
-  const { page, size, searchText, debouncedSearchText, setPage, setSize, setSearchText } = useSampleFilter()
+  const { page, size, searchText, debouncedSearchText, createdByIdEquals, setPage, setSize, setSearchText } = useSampleFilter()
   const { data, isLoading, isError, error } = useQuery<SamplesResult>({
-    queryKey: ['samples', page, size, debouncedSearchText],
-    queryFn: () => getSamplesWithLocations(page, size, { allowedAccess: 'VIEWABLE', nameContains: debouncedSearchText || undefined }),
+    queryKey: ['samples', page, size, debouncedSearchText, createdByIdEquals],
+    queryFn: () => getSamplesWithLocations(page, size, { allowedAccess: 'VIEWABLE', nameContains: debouncedSearchText || undefined, createdByIdEquals }),
     placeholderData: keepPreviousData,
   })
 

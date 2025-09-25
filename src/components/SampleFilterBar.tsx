@@ -2,7 +2,7 @@ import React from 'react'
 import { useSampleFilter } from '../features/core/sampleFilter'
 
 export default function SampleFilterBar() {
-  const { searchText, setSearchText } = useSampleFilter()
+  const { searchText, setSearchText, createdByIdEquals, setCreatedByIdEquals } = useSampleFilter()
   return (
     <div className="flex items-center gap-2">
       <input
@@ -10,6 +10,12 @@ export default function SampleFilterBar() {
         placeholder="Search name..."
         value={searchText}
         onChange={(e) => setSearchText(e.target.value)}
+      />
+      <input
+        className="rounded-md border px-3 py-2 w-full max-w-xs"
+        placeholder="Created By (User ID)"
+        value={createdByIdEquals || ''}
+        onChange={(e) => setCreatedByIdEquals(e.target.value.trim() || undefined)}
       />
     </div>
   )
