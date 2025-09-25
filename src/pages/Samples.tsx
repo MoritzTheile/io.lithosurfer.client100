@@ -1,6 +1,7 @@
 import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { getSamplesWithLocations, type SampleWithLocation } from '../features/core/api'
 import { useSampleFilter } from '../features/core/sampleFilter'
+import SampleFilterBar from '../components/SampleFilterBar'
 
 type SamplesResult = { items: SampleWithLocation[]; totalCount: number }
 
@@ -15,14 +16,7 @@ export default function Samples() {
   return (
     <div className="space-y-4">
       <h1 className="text-2xl font-semibold">Samples</h1>
-      <div className="flex items-center gap-2">
-        <input
-          className="rounded-md border px-3 py-2 w-full max-w-xs"
-          placeholder="Search name..."
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
-        />
-      </div>
+      <SampleFilterBar />
       {isLoading ? (
         <div>Loading samples...</div>
       ) : isError ? (

@@ -3,6 +3,7 @@ import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { getSamplesGeoFeatureCollection } from '../features/core/api'
 import { useSampleFilter } from '../features/core/sampleFilter'
+import SampleFilterBar from '../components/SampleFilterBar'
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN as string
 
@@ -75,7 +76,9 @@ export default function Map() {
           nameContains: debouncedSearchText || undefined,
           allowedAccess: allowedAccess,
         })
-        const source = mapRef.current.getSource('samples') as mapboxgl.GeoJSONSource | undefined
+        const map = mapRef.current
+        if (!map) return
+        const source = map.getSource('samples') as mapboxgl.GeoJSONSource | undefined
         source?.setData(geojson as any)
       } catch (e) {
         // eslint-disable-next-line no-console
@@ -87,6 +90,7 @@ export default function Map() {
   return (
     <div className="space-y-4">
       <h1 className="text-2xl font-semibold">Map</h1>
+      <SampleFilterBar />
       <div ref={mapContainerRef} className="w-full h-[70vh] rounded-lg border" />
     </div>
   )
