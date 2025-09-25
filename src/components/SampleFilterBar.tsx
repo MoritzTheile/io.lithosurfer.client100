@@ -3,7 +3,7 @@ import { useSampleFilter } from '../features/core/sampleFilter'
 import LithoUserPicker from './LithoUserPicker'
 
 export default function SampleFilterBar() {
-  const { searchText, setSearchText, createdByIdEquals, setCreatedByIdEquals } = useSampleFilter()
+  const { searchText, setSearchText, createdByIdEquals, setCreatedByIdEquals, clearFilters } = useSampleFilter()
   return (
     <div className="flex items-center gap-2">
       <input
@@ -13,6 +13,13 @@ export default function SampleFilterBar() {
         onChange={(e) => setSearchText(e.target.value)}
       />
       <LithoUserPicker value={createdByIdEquals} onChange={setCreatedByIdEquals} />
+      <button
+        type="button"
+        className="rounded-md border px-3 py-2 text-sm hover:bg-gray-50"
+        onClick={clearFilters}
+      >
+        Clear
+      </button>
     </div>
   )
 }

@@ -14,6 +14,7 @@ type SampleFilterState = {
   setSize: (v: number) => void
   setAllowedAccess: (v: AllowedAccess | undefined) => void
   setCreatedByIdEquals: (v: string | undefined) => void
+  clearFilters: () => void
 }
 
 const SampleFilterContext = createContext<SampleFilterState | undefined>(undefined)
@@ -50,6 +51,11 @@ export function SampleFilterProvider({ children }: PropsWithChildren) {
     setAllowedAccess,
     setCreatedByIdEquals: (v: string | undefined) => {
       setCreatedByIdEquals(v)
+      setPage(0)
+    },
+    clearFilters: () => {
+      setSearchText('')
+      setCreatedByIdEquals(undefined)
       setPage(0)
     },
   }), [searchText, debouncedSearchText, page, size, allowedAccess, createdByIdEquals])
