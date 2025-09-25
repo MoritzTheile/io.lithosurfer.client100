@@ -18,7 +18,7 @@ export default function Layout({ children }: PropsWithChildren) {
           className={`absolute inset-y-0 left-0 bg-white border-r border-gray-200 w-64 transform transition-transform duration-200 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
         >
           <div className="h-16 flex items-center px-4">
-            <span className="font-semibold text-lg truncate">LithoSurfer</span>
+            <span className="font-semibold text-lg truncate">LithoSurfer </span>
           </div>
           <nav className="px-2 space-y-1">
             {isAuthenticated ? (
