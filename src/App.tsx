@@ -10,44 +10,46 @@ import ResetPassword from './pages/ResetPassword'
 import ResetPasswordFinish from './pages/ResetPasswordFinish'
 import Samples from './pages/Samples'
 import { ACCESS_TOKEN_STORAGE_KEY } from './lib/config'
+import { SampleFilterProvider } from './features/core/sampleFilter'
 
 export default function App() {
   return (
     <Layout>
-      <Routes>
-        <Route path="/" element={<Navigate to="/account" replace />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/activate" element={<Activate />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/reset/finish" element={<ResetPasswordFinish />} />
-        <Route
-          path="/account"
-          element={
-            <ProtectedRoute>
-              <Account />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/map"
-          element={
-            <ProtectedRoute>
-              <Map />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/samples"
-          element={
-            <ProtectedRoute>
-              <Samples />
-            </ProtectedRoute>
-          }
-        />
-         {/* test comment */}
-        <Route path="*" element={<Navigate to="/account" replace />} />
-      </Routes>
+      <SampleFilterProvider>
+        <Routes>
+          <Route path="/" element={<Navigate to="/account" replace />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/activate" element={<Activate />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/reset/finish" element={<ResetPasswordFinish />} />
+          <Route
+            path="/account"
+            element={
+              <ProtectedRoute>
+                <Account />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/map"
+            element={
+              <ProtectedRoute>
+                <Map />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/samples"
+            element={
+              <ProtectedRoute>
+                <Samples />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="*" element={<Navigate to="/account" replace />} />
+        </Routes>
+      </SampleFilterProvider>
     </Layout>
   )
 }
