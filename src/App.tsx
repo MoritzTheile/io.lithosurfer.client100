@@ -3,12 +3,12 @@ import Layout from './components/Layout'
 import ProtectedRoute from './components/ProtectedRoute'
 import Login from './pages/Login'
 import Account from './pages/Account'
-import Map from './pages/Map'
 import Register from './pages/Register'
 import Activate from './pages/Activate'
 import ResetPassword from './pages/ResetPassword'
 import ResetPasswordFinish from './pages/ResetPasswordFinish'
 import Samples from './pages/Samples'
+import SampleDetail from './pages/SampleDetail'
 import { ACCESS_TOKEN_STORAGE_KEY } from './lib/config'
 import { SampleFilterProvider } from './features/core/sampleFilter'
 
@@ -32,18 +32,18 @@ export default function App() {
             }
           />
           <Route
-            path="/map"
-            element={
-              <ProtectedRoute>
-                <Map />
-              </ProtectedRoute>
-            }
-          />
-          <Route
             path="/samples"
             element={
               <ProtectedRoute>
                 <Samples />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/samples/:id"
+            element={
+              <ProtectedRoute>
+                <SampleDetail />
               </ProtectedRoute>
             }
           />

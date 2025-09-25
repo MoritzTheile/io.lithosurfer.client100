@@ -34,17 +34,7 @@ export default function Layout({ children }: PropsWithChildren) {
                 >
                   Samples
                 </NavLink>
-                <NavLink
-                  to="/map"
-                  className={({ isActive }) =>
-                    `block rounded-md px-3 py-2 text-sm font-medium ${
-                      isActive ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-50'
-                    }`
-                  }
-                  onClick={() => setSidebarOpen(false)}
-                >
-                  Map
-                </NavLink>
+                
                 <NavLink
                   to="/account"
                   className={({ isActive }) =>
@@ -107,16 +97,7 @@ export default function Layout({ children }: PropsWithChildren) {
               >
                 Samples
               </NavLink>
-              <NavLink
-                to="/map"
-                className={({ isActive }) =>
-                  `block rounded-md px-3 py-2 text-sm font-medium ${
-                    isActive ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-50'
-                  }`
-                }
-              >
-                Map
-              </NavLink>
+              
               <NavLink
                 to="/account"
                 className={({ isActive }) =>

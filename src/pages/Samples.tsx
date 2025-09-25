@@ -2,10 +2,14 @@ import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { getSamplesWithLocations, type SampleWithLocation } from '../features/core/api'
 import { useSampleFilter } from '../features/core/sampleFilter'
 import SampleFilterBar from '../components/SampleFilterBar'
+import SamplesMap from '../components/SamplesMap'
+import { useState } from 'react'
+import { MapIcon, TableIcon } from '../components/icons'
 
 type SamplesResult = { items: SampleWithLocation[]; totalCount: number }
 
 export default function Samples() {
+  const [mode, setMode] = useState<'table' | 'map'>('table')
   const { page, size, searchText, debouncedSearchText, createdByIdEquals, setPage, setSize, setSearchText } = useSampleFilter()
   const { data, isLoading, isError, error } = useQuery<SamplesResult>({
     queryKey: ['samples', page, size, debouncedSearchText, createdByIdEquals],
@@ -16,8 +20,32 @@ export default function Samples() {
   return (
     <div className="space-y-4">
       <h1 className="text-2xl font-semibold">Samples</h1>
-      <SampleFilterBar />
-      {isLoading ? (
+      <div className="flex items-center justify-between">
+        <SampleFilterBar />
+        <div className="flex items-center gap-2" role="tablist" aria-label="View mode">
+          <button
+            aria-pressed={mode === 'table'}
+            title="Table view"
+            className={`inline-flex items-center gap-2 rounded-md border px-3 py-1 text-sm ${mode === 'table' ? 'bg-gray-100 text-gray-900' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+            onClick={() => setMode('table')}
+          >
+            <TableIcon className="h-4 w-4" />
+            <span className="hidden sm:inline">Table</span>
+          </button>
+          <button
+            aria-pressed={mode === 'map'}
+            title="Map view"
+            className={`inline-flex items-center gap-2 rounded-md border px-3 py-1 text-sm ${mode === 'map' ? 'bg-gray-100 text-gray-900' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+            onClick={() => setMode('map')}
+          >
+            <MapIcon className="h-4 w-4" />
+            <span className="hidden sm:inline">Map</span>
+          </button>
+        </div>
+      </div>
+      {mode === 'map' ? (
+        <SamplesMap />
+      ) : isLoading ? (
         <div>Loading samples...</div>
       ) : isError ? (
         <div className="text-sm text-red-600">{(error as Error).message}</div>
@@ -41,8 +69,14 @@ export default function Samples() {
                 const fmt = (n: number | null | undefined) =>
                   typeof n === 'number' ? n.toFixed(5) : ''
                 return (
-                  <tr key={id} className="odd:bg-white even:bg-gray-50">
-                    <td className="px-3 py-2 border-b">{id}</td>
+                  <tr key={id} className="odd:bg-white even:bg-gray-50 hover:bg-gray-100 cursor-pointer" onClick={() => {
+                    // pass the raw row to detail page for now
+                    window.history.pushState({}, '', `/samples/${id}`)
+                    // soft navigate using SPA API
+                    const navEvt = new PopStateEvent('popstate')
+                    dispatchEvent(navEvt)
+                  }}>
+                    <td className="px-3 py-2 border-b text-blue-600 underline">{id}</td>
                     <td className="px-3 py-2 border-b">{name}</td>
                     <td className="px-3 py-2 border-b">{fmt(lat)}</td>
                     <td className="px-3 py-2 border-b">{fmt(lon)}</td>
