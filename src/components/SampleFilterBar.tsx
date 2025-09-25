@@ -1,5 +1,6 @@
 import React from 'react'
 import { useSampleFilter } from '../features/core/sampleFilter'
+import LithoUserPicker from './LithoUserPicker'
 
 export default function SampleFilterBar() {
   const { searchText, setSearchText, createdByIdEquals, setCreatedByIdEquals } = useSampleFilter()
@@ -11,12 +12,7 @@ export default function SampleFilterBar() {
         value={searchText}
         onChange={(e) => setSearchText(e.target.value)}
       />
-      <input
-        className="rounded-md border px-3 py-2 w-full max-w-xs"
-        placeholder="Created By (User ID)"
-        value={createdByIdEquals || ''}
-        onChange={(e) => setCreatedByIdEquals(e.target.value.trim() || undefined)}
-      />
+      <LithoUserPicker value={createdByIdEquals} onChange={setCreatedByIdEquals} />
     </div>
   )
 }
