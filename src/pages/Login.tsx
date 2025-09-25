@@ -16,9 +16,9 @@ export default function Login() {
     try {
       await loginMutation.mutateAsync({ username, password, rememberMe })
       if (typeof window !== 'undefined') {
-        window.location.assign('/account')
+        setTimeout(() => window.location.assign('/account'), 0)
       } else {
-        navigate('/account')
+        setTimeout(() => navigate('/account'), 0)
       }
     } catch (err) {
       // handled by UI state
@@ -36,8 +36,11 @@ export default function Login() {
   return (
     <div className="mx-auto max-w-md space-y-4">
       <h1 className="text-2xl font-semibold">Login</h1>
-      <form className="space-y-3" onSubmit={onSubmit}>
+      <form className="space-y-3" onSubmit={onSubmit} autoComplete="on">
+        <label htmlFor="username" className="sr-only">Username</label>
         <input
+          id="username"
+          name="username"
           className="w-full rounded-md border px-3 py-2"
           placeholder="Username"
           value={username}
@@ -45,7 +48,10 @@ export default function Login() {
           autoComplete="username"
         />
         <div className="relative">
+          <label htmlFor="password" className="sr-only">Password</label>
           <input
+            id="password"
+            name="password"
             className="w-full rounded-md border px-3 py-2 pr-10"
             placeholder="Password"
             type={showPassword ? 'text' : 'password'}
@@ -78,6 +84,7 @@ export default function Login() {
           Remember me
         </label>
         <button
+          type="submit"
           className="w-full rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-60"
           disabled={loginMutation.isPending}
         >
