@@ -10,13 +10,11 @@ import ResetPasswordFinish from './pages/ResetPasswordFinish'
 import Samples from './pages/Samples'
 import SampleDetail from './pages/SampleDetail'
 import { ACCESS_TOKEN_STORAGE_KEY } from './lib/config'
-import { SampleFilterProvider } from './features/core/sampleFilter'
 
 export default function App() {
   return (
     <Layout>
-      <SampleFilterProvider>
-        <Routes>
+      <Routes>
           <Route path="/" element={<Navigate to="/account" replace />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
@@ -49,7 +47,6 @@ export default function App() {
           />
           <Route path="*" element={<Navigate to="/account" replace />} />
         </Routes>
-      </SampleFilterProvider>
     </Layout>
   )
 }
