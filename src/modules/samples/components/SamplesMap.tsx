@@ -1,13 +1,12 @@
 import { useEffect, useRef } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
-import { getSamplesGeoFeatureCollection } from '../features/samples/api'
-import { useSampleFilter } from '../features/samples/sampleFilter'
-import SampleFilterBar from '../components/SampleFilterBar'
+import { getSamplesGeoFeatureCollection } from '../features/api'
+import { useSampleFilter } from '../features/sampleFilter'
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN as string
 
-export default function Map() {
+export default function SamplesMap() {
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<mapboxgl.Map | null>(null)
   const { debouncedSearchText, allowedAccess, createdByIdEquals } = useSampleFilter()
@@ -47,6 +46,16 @@ export default function Map() {
               'circle-stroke-width': 1,
               'circle-stroke-color': '#ffffff',
             },
+          })
+          mapRef.current.on('click', 'samples-circle', (e) => {
+            const feature = e.features && e.features[0]
+            const id = feature && (feature.properties?.id || feature.properties?.sampleId)
+            if (id) {
+              const url = `/samples/${id}`
+              window.history.pushState({}, '', url)
+              const navEvt = new PopStateEvent('popstate')
+              dispatchEvent(navEvt)
+            }
           })
         } else {
           const source = mapRef.current.getSource('samples') as mapboxgl.GeoJSONSource
@@ -89,13 +98,7 @@ export default function Map() {
     })()
   }, [debouncedSearchText, allowedAccess, createdByIdEquals])
 
-  return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-semibold">Map</h1>
-      <SampleFilterBar />
-      <div ref={mapContainerRef} className="w-full h-[70vh] rounded-lg border" />
-    </div>
-  )
+  return <div ref={mapContainerRef} className="w-full h-[70vh] rounded-lg border" />
 }
 
 

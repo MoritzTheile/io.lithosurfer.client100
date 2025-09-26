@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
-import { requestPasswordReset } from '../features/auth/api'
+import { requestPasswordReset } from '../features/api'
 
 export default function ResetPassword() {
   const [email, setEmail] = useState('')

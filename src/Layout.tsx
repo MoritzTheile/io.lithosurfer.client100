@@ -1,6 +1,6 @@
 import { PropsWithChildren, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
-import { getStoredToken } from '../lib/config'
+import { getStoredToken } from './lib/config'
 
 export default function Layout({ children }: PropsWithChildren) {
   const [sidebarOpen, setSidebarOpen] = useState(true)

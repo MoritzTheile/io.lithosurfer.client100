@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
-import { activateAccount } from '../features/auth/api'
+import { activateAccount } from '../features/api'
 
 export default function Activate() {
   const [searchParams] = useSearchParams()

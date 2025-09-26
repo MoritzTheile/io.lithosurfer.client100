@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useLogin } from '../features/auth/useAuth'
-import { ACCESS_TOKEN_STORAGE_KEY } from '../lib/config'
+import { useLogin } from '../features/useAuth'
+import { ACCESS_TOKEN_STORAGE_KEY } from '../../../lib/config'
 
 export default function Login() {
   const [username, setUsername] = useState('')

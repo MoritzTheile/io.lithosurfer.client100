@@ -1,4 +1,4 @@
-import { http, httpWithResponse } from '../../lib/http'
+import { http, httpWithResponse } from '../../../lib/http'
 
 export type SampleWithLocation = Record<string, unknown>
 

@@ -1,5 +1,5 @@
-import { http } from '../../lib/http'
-import { setStoredToken, clearStoredToken } from '../../lib/config'
+import { http } from '../../../lib/http'
+import { setStoredToken, clearStoredToken } from '../../../lib/config'
 import type { JWTToken, LoginVM, UserDTO, RegisterVM } from './types'
 
 export async function login(loginVM: LoginVM): Promise<JWTToken> {

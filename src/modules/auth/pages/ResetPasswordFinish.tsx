@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
-import { finishPasswordReset } from '../features/auth/api'
+import { finishPasswordReset } from '../features/api'
 
 export default function ResetPasswordFinish() {
   const [searchParams] = useSearchParams()

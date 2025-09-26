@@ -1,6 +1,6 @@
 import React from 'react'
-import { useSampleFilter } from '../features/samples/sampleFilter'
-import LithoUserPicker from './LithoUserPicker'
+import { useSampleFilter } from '../features/sampleFilter'
+import LithoUserPicker from '../../auth/components/LithoUserPicker'
 
 export default function SampleFilterBar() {
   const { searchText, setSearchText, createdByIdEquals, setCreatedByIdEquals, clearFilters } = useSampleFilter()

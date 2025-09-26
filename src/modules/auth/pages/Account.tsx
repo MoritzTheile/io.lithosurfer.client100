@@ -1,5 +1,5 @@
-import { useAccount, useLogout } from '../features/auth/useAuth'
-import { API_BASE_URL } from '../lib/config'
+import { useAccount, useLogout } from '../features/useAuth'
+import { API_BASE_URL } from '../../../lib/config'
 
 export default function Account() {
   const { data, isLoading, isError, error } = useAccount()

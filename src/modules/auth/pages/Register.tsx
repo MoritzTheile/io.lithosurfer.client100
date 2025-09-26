@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
-import { register as registerApi } from '../features/auth/api'
+import { register as registerApi } from '../features/api'
 
 export default function Register() {
   const [login, setLogin] = useState('')

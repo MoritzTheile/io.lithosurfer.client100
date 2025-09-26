@@ -1,10 +1,10 @@
 import { useQuery, keepPreviousData } from '@tanstack/react-query'
-import { getSamplesWithLocations, type SampleWithLocation } from '../features/samples/api'
-import { useSampleFilter } from '../features/samples/sampleFilter'
+import { getSamplesWithLocations, type SampleWithLocation } from '../features/api'
+import { useSampleFilter } from '../features/sampleFilter'
 import SampleFilterBar from '../components/SampleFilterBar'
 import SamplesMap from '../components/SamplesMap'
 import { useState } from 'react'
-import { MapIcon, TableIcon } from '../components/icons'
+import { MapIcon, TableIcon } from '../../../lib/icons'
 
 type SamplesResult = { items: SampleWithLocation[]; totalCount: number }
 
