@@ -1,11 +1,26 @@
-import { PropsWithChildren, useState } from 'react'
+import { PropsWithChildren, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getStoredToken } from './lib/config'
 import SidebarNav from './components/SidebarNav'
 
 export default function Layout({ children }: PropsWithChildren) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [headerHidden, setHeaderHidden] = useState(false)
+  const lastScrollYRef = useRef(0)
   const isAuthenticated = typeof window !== 'undefined' && Boolean(getStoredToken())
+
+  useEffect(() => {
+    const onScroll = () => {
+      const current = window.scrollY || 0
+      const last = lastScrollYRef.current
+      // Hide on scroll down, show on scroll up
+      if (current > last) setHeaderHidden(true)
+      else if (current < last) setHeaderHidden(false)
+      lastScrollYRef.current = current <= 0 ? 0 : current
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   return (
     <div className="flex min-h-screen">
@@ -41,7 +56,7 @@ export default function Layout({ children }: PropsWithChildren) {
 
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <header className="sticky top-0 z-10 h-16 bg-white border-b border-gray-200 flex items-center px-4 gap-4">
+        <header className={`sticky top-0 z-10 h-16 bg-white border-b border-gray-200 flex items-center px-4 gap-4 transition-transform duration-200 ${headerHidden ? '-translate-y-full' : 'translate-y-0'}`}>
           <button
             className="sm:hidden inline-flex items-center justify-center rounded-md border bg-white p-2 text-gray-700 shadow-sm hover:bg-gray-50"
             onClick={() => setSidebarOpen(true)}
