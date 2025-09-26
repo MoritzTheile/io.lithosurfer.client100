@@ -1,5 +1,6 @@
 export * from './features/api'
 export * from './features/sampleFilter'
+export * from './features/useSamplesQuery'
 export { default as Samples } from './pages/SamplesPage'
 export { default as SampleDetail } from './pages/SampleDetailPage'
 export { default as Map } from './pages/MapPage'

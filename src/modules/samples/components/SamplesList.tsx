@@ -1,23 +1,15 @@
 import React from 'react'
-import { useQuery, keepPreviousData } from '@tanstack/react-query'
-import { getSamplesWithLocations, type SampleRecord } from '../features/api'
+import { type SampleRecord } from '../features/api'
+import { useSamplesQuery } from '../features/useSamplesQuery'
 import { useSampleFilter } from '../features/sampleFilter'
 
 type Row = any
 
 export default function SamplesList() {
-  const { page, size, debouncedSearchText, createdByIdEquals, setPage, setSize, setTotalCount } = useSampleFilter()
-  
-  const { data, isLoading, isError, error } = useQuery<{ items: SampleRecord[]; totalCount: number}>({
-    queryKey: ['samples', page, size, debouncedSearchText, createdByIdEquals],
-    queryFn: () => getSamplesWithLocations(page, size, { allowedAccess: 'VIEWABLE', nameContains: debouncedSearchText || undefined, createdByIdEquals }),
-    placeholderData: keepPreviousData,
-  })
-  const rows = (data?.items ?? []) as any[]
+  const { setPage, setSize, page, size } = useSampleFilter()
+  const { data, isLoading, isError, error } = useSamplesQuery()
+  const rows = (data?.rows ?? []) as any[]
   const totalCount = data?.totalCount ?? 0
-  React.useEffect(() => {
-    setTotalCount(totalCount)
-  }, [totalCount, setTotalCount])
   const fmt = (n: number | null | undefined) => (typeof n === 'number' ? n.toFixed(5) : '')
   if (isLoading) return <div>Loading samples...</div>
   if (isError) return <div className="text-sm text-red-600">{(error as Error).message}</div>
