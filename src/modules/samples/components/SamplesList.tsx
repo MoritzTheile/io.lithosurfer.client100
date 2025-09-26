@@ -2,12 +2,14 @@ import React from 'react'
 import { type SampleRecord } from '../features/api'
 import { useSamplesQuery } from '../features/useSamplesQuery'
 import { useSampleFilter } from '../features/sampleFilter'
+import { useSampleSelection } from '../features/selection'
 
 type Row = any
 
 export default function SamplesList() {
   const { setPage, setSize, page, size } = useSampleFilter()
   const { data, isLoading, isError, error } = useSamplesQuery()
+  const { selectedIds, toggle } = useSampleSelection()
   const rows = (data?.rows ?? []) as any[]
   const totalCount = data?.totalCount ?? 0
   const fmt = (n: number | null | undefined) => (typeof n === 'number' ? n.toFixed(5) : '')
@@ -40,6 +42,19 @@ export default function SamplesList() {
                   dispatchEvent(navEvt)
                 }}
               >
+                <td className="px-3 py-2 border-b w-8">
+                  <input
+                    aria-label={`Select sample ${id}`}
+                    type="checkbox"
+                    className="h-4 w-4"
+                    checked={selectedIds.has(String(id))}
+                    onChange={(e) => {
+                      e.stopPropagation()
+                      toggle(String(id))
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </td>
                 <td className="px-3 py-2 border-b text-blue-600 underline">{id}</td>
                 <td className="px-3 py-2 border-b">{name}</td>
                 <td className="px-3 py-2 border-b">{fmt(lat)}</td>

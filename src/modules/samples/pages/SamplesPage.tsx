@@ -2,6 +2,7 @@ import { useSampleFilter } from '../features/sampleFilter'
 import SampleFilterBar from '../components/SampleFilterBar'
 import SamplesMap from '../components/SamplesMap'
 import SamplesList from '../components/SamplesList'
+import SelectionBar from '../components/SelectionBar'
 import { useState } from 'react'
 import { MapIcon, TableIcon } from '../../../lib/icons'
 import { useSamplesQuery } from '../features/useSamplesQuery'
@@ -51,6 +52,7 @@ export default function Samples() {
           </button>
         </div>
       </div>
+      <SelectionBar />
       {mode === 'map' ? (
         totalCount > 100000 ? (
           <div className="rounded-md border border-yellow-300 bg-yellow-50 text-yellow-800 px-3 py-2 text-sm">
