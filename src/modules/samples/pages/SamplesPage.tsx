@@ -51,7 +51,17 @@ export default function Samples() {
           </button>
         </div>
       </div>
-      {mode === 'map' ? <SamplesMap /> : <SamplesList />}
+      {mode === 'map' ? (
+        totalCount > 100000 ? (
+          <div className="rounded-md border border-yellow-300 bg-yellow-50 text-yellow-800 px-3 py-2 text-sm">
+            Data exceeds 100k records, please filter down to see on map.
+          </div>
+        ) : (
+          <SamplesMap />
+        )
+      ) : (
+        <SamplesList />
+      )}
     </div>
   )
 }
