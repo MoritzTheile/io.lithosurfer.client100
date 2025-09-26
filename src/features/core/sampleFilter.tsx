@@ -48,3 +48,16 @@ export function useSampleFilter(): SampleFilterState {
   return useSampleFilterStore()
 }
 
+// Dev-only subscription for debugging without middleware
+if (import.meta.env.DEV && typeof window !== 'undefined') {
+  const key = '__LS_SAMPLE_FILTER_SUB__'
+  const g = window as any
+  if (!g[key]) {
+    g[key] = true
+    useSampleFilterStore.subscribe((state) => {
+      // eslint-disable-next-line no-console
+      console.log('SampleFilter state:', state)
+    })
+  }
+}
+
