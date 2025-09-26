@@ -16,9 +16,9 @@ export default function Login() {
     try {
       await loginMutation.mutateAsync({ username, password, rememberMe })
       if (typeof window !== 'undefined') {
-        setTimeout(() => window.location.assign('/account'), 0)
+        setTimeout(() => window.location.assign('/samples'), 0)
       } else {
-        setTimeout(() => navigate('/account'), 0)
+        setTimeout(() => navigate('/samples'), 0)
       }
     } catch (err) {
       // handled by UI state

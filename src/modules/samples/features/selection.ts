@@ -4,6 +4,7 @@ type SelectionState = {
   selectedIds: Set<string>
   toggle: (id: string) => void
   selectMany: (ids: string[]) => void
+  deselectMany: (ids: string[]) => void
   clear: () => void
 }
 
@@ -20,6 +21,12 @@ export const useSampleSelection = create<SelectionState>((set) => ({
     set((state) => {
       const next = new Set(state.selectedIds)
       ids.forEach((id) => next.add(id))
+      return { selectedIds: next }
+    }),
+  deselectMany: (ids: string[]) =>
+    set((state) => {
+      const next = new Set(state.selectedIds)
+      ids.forEach((id) => next.delete(id))
       return { selectedIds: next }
     }),
   clear: () => set({ selectedIds: new Set<string>() }),

@@ -9,9 +9,16 @@ type Row = any
 export default function SamplesList() {
   const { setPage, setSize, page, size } = useSampleFilter()
   const { data, isLoading, isError, error } = useSamplesQuery()
-  const { selectedIds, toggle } = useSampleSelection()
+  const { selectedIds, toggle, selectMany, deselectMany } = useSampleSelection()
   const rows = (data?.rows ?? []) as any[]
   const totalCount = data?.totalCount ?? 0
+  const rowIds = (rows ?? []).map((row: any, idx: number) => String(row?.sampleDTO?.id ?? row?.id ?? idx))
+  const allSelected = rowIds.length > 0 && rowIds.every((id: string) => selectedIds.has(id))
+  const someSelected = rowIds.some((id: string) => selectedIds.has(id)) && !allSelected
+  const headerCbRef = React.useRef<HTMLInputElement | null>(null)
+  React.useEffect(() => {
+    if (headerCbRef.current) headerCbRef.current.indeterminate = someSelected
+  }, [someSelected, allSelected])
   const fmt = (n: number | null | undefined) => (typeof n === 'number' ? n.toFixed(5) : '')
   if (isLoading) return <div>Loading samples...</div>
   if (isError) return <div className="text-sm text-red-600">{(error as Error).message}</div>
@@ -20,6 +27,20 @@ export default function SamplesList() {
       <table className="min-w-full text-sm">
         <thead className="bg-gray-50">
           <tr>
+            <th className="text-left px-3 py-2 border-b w-8">
+              <input
+                aria-label="Select all on page"
+                ref={headerCbRef}
+                type="checkbox"
+                className="h-4 w-4"
+                checked={allSelected}
+                onChange={(e) => {
+                  e.stopPropagation()
+                  if (allSelected) deselectMany(rowIds)
+                  else selectMany(rowIds)
+                }}
+              />
+            </th>
             <th className="text-left px-3 py-2 border-b">ID</th>
             <th className="text-left px-3 py-2 border-b">Name</th>
             <th className="text-left px-3 py-2 border-b">Latitude</th>
