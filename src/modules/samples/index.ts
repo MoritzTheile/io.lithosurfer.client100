@@ -5,4 +5,5 @@ export { default as SampleDetail } from './pages/SampleDetail'
 export { default as Map } from './pages/Map'
 export { default as SampleFilterBar } from './components/SampleFilterBar'
 export { default as SamplesMap } from './components/SamplesMap'
+export { default as SamplesList } from './components/SamplesList'
 
