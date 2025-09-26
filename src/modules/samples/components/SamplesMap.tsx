@@ -17,8 +17,8 @@ export default function SamplesMap() {
     mapRef.current = new mapboxgl.Map({
       container: mapContainerRef.current,
       style: 'mapbox://styles/mapbox/streets-v12',
-      center: [0, 20],
-      zoom: 6,
+      center: [133.7751, -25.2744],
+      zoom: 3,
     })
 
     mapRef.current.addControl(new mapboxgl.NavigationControl(), 'top-right')
