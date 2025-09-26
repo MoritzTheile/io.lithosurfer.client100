@@ -9,11 +9,13 @@ type SampleFilterState = {
   size: number
   allowedAccess?: AllowedAccess
   createdByIdEquals?: string
+  totalCount: number
   setSearchText: (v: string) => void
   setPage: (v: number) => void
   setSize: (v: number) => void
   setAllowedAccess: (v: AllowedAccess | undefined) => void
   setCreatedByIdEquals: (v: string | undefined) => void
+  setTotalCount: (n: number) => void
   clearFilters: () => void
 }
 
@@ -26,6 +28,7 @@ const useSampleFilterStore = create<SampleFilterState>((set) => ({
   size: 20,
   allowedAccess: 'VIEWABLE',
   createdByIdEquals: undefined,
+  totalCount: 0,
   setSearchText: (v: string) => {
     if (typeof window !== 'undefined' && debounceTimer) {
       window.clearTimeout(debounceTimer)
@@ -41,6 +44,7 @@ const useSampleFilterStore = create<SampleFilterState>((set) => ({
   setSize: (v: number) => set({ size: v, page: 0 }),
   setAllowedAccess: (v: AllowedAccess | undefined) => set({ allowedAccess: v }),
   setCreatedByIdEquals: (v: string | undefined) => set({ createdByIdEquals: v, page: 0 }),
+  setTotalCount: (n: number) => set({ totalCount: n }),
   clearFilters: () => set({ searchText: '', createdByIdEquals: undefined, page: 0 }),
 }))
 

@@ -7,11 +7,16 @@ import { MapIcon, TableIcon } from '../../../lib/icons'
 
 export default function Samples() {
   const [mode, setMode] = useState<'table' | 'map'>('table')
-  const { setSearchText } = useSampleFilter()
+  const { totalCount } = useSampleFilter()
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-semibold">Samples</h1>
+      <div className="flex items-center gap-2">
+        <h1 className="text-2xl font-semibold">Samples</h1>
+        <span className="inline-flex items-center rounded-full bg-gray-700 text-white text-xs px-2 py-0.5">
+          {totalCount.toLocaleString()}
+        </span>
+      </div>
       <div className="flex items-center justify-between">
         <SampleFilterBar />
         <div className="flex items-center gap-2" role="tablist" aria-label="View mode">
