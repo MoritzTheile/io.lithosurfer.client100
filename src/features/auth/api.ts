@@ -47,3 +47,16 @@ export async function finishPasswordReset(key: string, newPassword: string): Pro
   })
 }
 
+// Management (LithoUser)
+export type LithoUser = { id: string; name?: string; login?: string; firstName?: string; lastName?: string; email?: string }
+
+export async function getLithoUsers(params?: { search?: string, page?: number, size?: number }): Promise<LithoUser[]> {
+  const p = new URLSearchParams()
+  if (params?.search) p.set('search', params.search)
+  if (params?.page !== undefined) p.set('page', String(params.page))
+  if (params?.size !== undefined) p.set('size', String(params.size))
+  const query = p.toString()
+  const path = query ? `/api/management/litho-users?${query}` : '/api/management/litho-users'
+  return http<LithoUser[]>(path, { method: 'GET' })
+}
+

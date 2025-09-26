@@ -1,6 +1,6 @@
 import { useQuery, keepPreviousData } from '@tanstack/react-query'
-import { getSamplesWithLocations, type SampleWithLocation } from '../features/core/api'
-import { useSampleFilter } from '../features/core/sampleFilter'
+import { getSamplesWithLocations, type SampleWithLocation } from '../features/samples/api'
+import { useSampleFilter } from '../features/samples/sampleFilter'
 import SampleFilterBar from '../components/SampleFilterBar'
 import SamplesMap from '../components/SamplesMap'
 import { useState } from 'react'

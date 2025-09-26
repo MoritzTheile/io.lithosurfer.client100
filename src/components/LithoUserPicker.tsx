@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { getLithoUsers, type LithoUser } from '../features/core/api'
+import { getLithoUsers, type LithoUser } from '../features/auth/api'
 
 type Props = {
   value?: string

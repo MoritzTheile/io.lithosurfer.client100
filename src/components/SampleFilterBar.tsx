@@ -1,5 +1,5 @@
 import React from 'react'
-import { useSampleFilter } from '../features/core/sampleFilter'
+import { useSampleFilter } from '../features/samples/sampleFilter'
 import LithoUserPicker from './LithoUserPicker'
 
 export default function SampleFilterBar() {

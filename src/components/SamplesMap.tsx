@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
-import { getSamplesGeoFeatureCollection } from '../features/core/api'
-import { useSampleFilter } from '../features/core/sampleFilter'
+import { getSamplesGeoFeatureCollection } from '../features/samples/api'
+import { useSampleFilter } from '../features/samples/sampleFilter'
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN as string
 
