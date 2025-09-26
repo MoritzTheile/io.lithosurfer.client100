@@ -4,7 +4,7 @@ import { getStoredToken } from './lib/config'
 import SidebarNav from './components/SidebarNav'
 
 export default function Layout({ children }: PropsWithChildren) {
-  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const isAuthenticated = typeof window !== 'undefined' && Boolean(getStoredToken())
 
   return (
@@ -29,13 +29,13 @@ export default function Layout({ children }: PropsWithChildren) {
 
       {/* Sidebar (desktop) */}
       <aside
-        className={`bg-white border-r border-gray-200 transition-all duration-200 ease-in-out w-64 hidden sm:block`}
+        className={`bg-white border-r border-gray-200 transition-all duration-200 ease-in-out ${sidebarOpen ? 'w-64 hidden sm:block' : 'hidden sm:hidden'}`}
       >
         <div className="h-16 flex items-center px-4">
           <span className="font-semibold text-lg truncate">{sidebarOpen ? 'LithoSurfer' : 'LS'}</span>
         </div>
         <nav className="px-2 space-y-1">
-          <SidebarNav isAuthenticated={isAuthenticated} />
+          <SidebarNav isAuthenticated={isAuthenticated} onItemClick={() => setSidebarOpen(false)} />
         </nav>
       </aside>
 
@@ -46,6 +46,16 @@ export default function Layout({ children }: PropsWithChildren) {
             className="sm:hidden inline-flex items-center justify-center rounded-md border bg-white p-2 text-gray-700 shadow-sm hover:bg-gray-50"
             onClick={() => setSidebarOpen(true)}
             aria-label="Open menu"
+            aria-expanded={sidebarOpen}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="h-5 w-5">
+              <path strokeLinecap="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+          <button
+            className="hidden sm:inline-flex items-center justify-center rounded-md border bg-white p-2 text-gray-700 shadow-sm hover:bg-gray-50"
+            onClick={() => setSidebarOpen((v) => !v)}
+            aria-label={sidebarOpen ? 'Hide sidebar' : 'Show sidebar'}
             aria-expanded={sidebarOpen}
           >
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="h-5 w-5">
