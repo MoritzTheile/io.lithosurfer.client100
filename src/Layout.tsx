@@ -1,6 +1,7 @@
 import { PropsWithChildren, useState } from 'react'
-import { Link, NavLink } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { getStoredToken } from './lib/config'
+import SidebarNav from './components/SidebarNav'
 
 export default function Layout({ children }: PropsWithChildren) {
   const [sidebarOpen, setSidebarOpen] = useState(true)
@@ -21,58 +22,7 @@ export default function Layout({ children }: PropsWithChildren) {
             <span className="font-semibold text-lg truncate">LithoSurfer </span>
           </div>
           <nav className="px-2 space-y-1">
-            {isAuthenticated ? (
-              <>
-                <NavLink
-                  to="/samples"
-                  className={({ isActive }) =>
-                    `block rounded-md px-3 py-2 text-sm font-medium ${
-                      isActive ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-50'
-                    }`
-                  }
-                  onClick={() => setSidebarOpen(false)}
-                >
-                  Samples
-                </NavLink>
-                
-                <NavLink
-                  to="/account"
-                  className={({ isActive }) =>
-                    `block rounded-md px-3 py-2 text-sm font-medium ${
-                      isActive ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-50'
-                    }`
-                  }
-                  onClick={() => setSidebarOpen(false)}
-                >
-                  Account
-                </NavLink>
-              </>
-            ) : (
-              <>
-                <NavLink
-                  to="/login"
-                  className={({ isActive }) =>
-                    `block rounded-md px-3 py-2 text-sm font-medium ${
-                      isActive ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-50'
-                    }`
-                  }
-                  onClick={() => setSidebarOpen(false)}
-                >
-                  Login
-                </NavLink>
-                <NavLink
-                  to="/register"
-                  className={({ isActive }) =>
-                    `block rounded-md px-3 py-2 text-sm font-medium ${
-                      isActive ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-50'
-                    }`
-                  }
-                  onClick={() => setSidebarOpen(false)}
-                >
-                  Register
-                </NavLink>
-              </>
-            )}
+            <SidebarNav isAuthenticated={isAuthenticated} onItemClick={() => setSidebarOpen(false)} />
           </nav>
         </div>
       </aside>
@@ -85,54 +35,7 @@ export default function Layout({ children }: PropsWithChildren) {
           <span className="font-semibold text-lg truncate">{sidebarOpen ? 'LithoSurfer' : 'LS'}</span>
         </div>
         <nav className="px-2 space-y-1">
-          {isAuthenticated ? (
-            <>
-              <NavLink
-                to="/samples"
-                className={({ isActive }) =>
-                  `block rounded-md px-3 py-2 text-sm font-medium ${
-                    isActive ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-50'
-                  }`
-                }
-              >
-                Samples
-              </NavLink>
-              
-              <NavLink
-                to="/account"
-                className={({ isActive }) =>
-                  `block rounded-md px-3 py-2 text-sm font-medium ${
-                    isActive ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-50'
-                  }`
-                }
-              >
-                Account
-              </NavLink>
-            </>
-          ) : (
-            <>
-              <NavLink
-                to="/login"
-                className={({ isActive }) =>
-                  `block rounded-md px-3 py-2 text-sm font-medium ${
-                    isActive ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-50'
-                  }`
-                }
-              >
-                Login
-              </NavLink>
-              <NavLink
-                to="/register"
-                className={({ isActive }) =>
-                  `block rounded-md px-3 py-2 text-sm font-medium ${
-                    isActive ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-50'
-                  }`
-                }
-              >
-                Register
-              </NavLink>
-            </>
-          )}
+          <SidebarNav isAuthenticated={isAuthenticated} />
         </nav>
       </aside>
 
