@@ -4,10 +4,16 @@ import SamplesMap from '../components/SamplesMap'
 import SamplesList from '../components/SamplesList'
 import { useState } from 'react'
 import { MapIcon, TableIcon } from '../../../lib/icons'
+import { useSamplesQuery } from '../features/useSamplesQuery'
 
 export default function Samples() {
+
   const [mode, setMode] = useState<'table' | 'map'>('table')
-  const { totalCount } = useSampleFilter()
+
+  const { data, isLoading, isError, error } = useSamplesQuery()
+  
+  const totalCount = data?.totalCount ?? 0
+
 
   return (
     <div className="space-y-4">
