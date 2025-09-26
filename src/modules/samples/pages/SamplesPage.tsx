@@ -14,14 +14,19 @@ export default function Samples() {
   
   const totalCount = data?.totalCount ?? 0
 
-
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
         <h1 className="text-2xl font-semibold">Samples</h1>
-        <span className="inline-flex items-center rounded-full bg-gray-700 text-white text-xs px-2 py-0.5">
-          {totalCount.toLocaleString()}
-        </span>
+        {isLoading ? (
+          <span className="inline-flex items-center rounded-full bg-gray-700 text-white text-xs px-2 py-0.5" aria-live="polite" aria-busy="true">
+            <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+          </span>
+        ) : (
+          <span className="inline-flex items-center rounded-full bg-gray-700 text-white text-xs px-2 py-0.5">
+            {totalCount.toLocaleString()}
+          </span>
+        )}
       </div>
       <div className="flex items-center justify-between">
         <SampleFilterBar />
