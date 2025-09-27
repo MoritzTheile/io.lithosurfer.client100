@@ -87,7 +87,9 @@ export default function Layout({ children }: PropsWithChildren) {
           <div className="flex-1" />
           <div className="hidden sm:flex items-center gap-2 text-xs text-gray-600">
             <span className="uppercase tracking-wide">Powered by</span>
-            <img src="/lithodat.logo.png" alt="LithoDat" className="h-5 w-auto" />
+            <a href="https://www.lithodat.com" target="_blank" rel="noopener noreferrer" title="LithoDat">
+              <img src="/lithodat.logo.png" alt="LithoDat" className="h-5 w-auto" />
+            </a>
           </div>
         </header>
 
