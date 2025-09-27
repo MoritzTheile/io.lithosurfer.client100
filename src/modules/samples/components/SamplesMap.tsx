@@ -11,7 +11,7 @@ export default function SamplesMap({ totalCount, isVisible }: { totalCount?: num
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<mapboxgl.Map | null>(null)
   const { debouncedSearchText, allowedAccess, createdByIdEquals, setBbox, bboxMinLat, bboxMaxLat, bboxMinLon, bboxMaxLon } = useSampleFilter()
-  const { selectedIds, toggle, selectMany } = useSampleSelection()
+  const { selectedIds, toggle, selectMany, deselectMany } = useSampleSelection()
   const [isLoading, setIsLoading] = useState(false)
   const latestRequestIdRef = useRef(0)
   const EMPTY_GEOJSON = { type: 'FeatureCollection', features: [] } as const
@@ -21,6 +21,7 @@ export default function SamplesMap({ totalCount, isVisible }: { totalCount?: num
   const lastAppliedStyleIdRef = useRef<string>('satellite-streets-v12')
   const [box, setBox] = useState<{ x0: number; y0: number; x1: number; y1: number } | null>(null)
   const [isShiftDown, setIsShiftDown] = useState(false)
+  const [isCtrlDown, setIsCtrlDown] = useState(false)
   const [showShiftHint, setShowShiftHint] = useState(true)
 
   // Keep latest params in refs for event handlers
@@ -180,9 +181,12 @@ export default function SamplesMap({ totalCount, isVisible }: { totalCount?: num
       // Prevent default Mapbox box-zoom behavior and panning during selection
       const map = mapRef.current
       ev.preventDefault()
+      const isUnselectMode = !!(ev.ctrlKey || (ev as any).metaKey)
       const boxZoomWasEnabled = (map as any).boxZoom && (map as any).boxZoom.isEnabled && (map as any).boxZoom.isEnabled()
+      const dragRotateWasEnabled = map.dragRotate && (map.dragRotate as any).isEnabled && (map.dragRotate as any).isEnabled()
       if (map.boxZoom && map.boxZoom.disable) map.boxZoom.disable()
       map.dragPan.disable()
+      if (map.dragRotate && map.dragRotate.disable) map.dragRotate.disable()
       const start = e.point
       setBox({ x0: start.x, y0: start.y, x1: start.x, y1: start.y })
 
@@ -202,13 +206,17 @@ export default function SamplesMap({ totalCount, isVisible }: { totalCount?: num
           .map((f) => (f.properties?.id ?? f.properties?.sampleId))
           .filter((v) => v !== undefined)
           .map((v) => String(v as any))
-        if (ids.length > 0) selectMany(ids)
+        if (ids.length > 0) {
+          if (isUnselectMode) deselectMany(ids)
+          else selectMany(ids)
+        }
         setBox(null)
         mapRef.current.off('mousemove', onMouseMove)
         mapRef.current.off('mouseup', onMouseUp)
         // Restore interactions
         if (boxZoomWasEnabled && map.boxZoom && map.boxZoom.enable) map.boxZoom.enable()
         map.dragPan.enable()
+        if (dragRotateWasEnabled && map.dragRotate && map.dragRotate.enable) map.dragRotate.enable()
       }
       mapRef.current.on('mousemove', onMouseMove)
       mapRef.current.on('mouseup', onMouseUp)
@@ -226,7 +234,7 @@ export default function SamplesMap({ totalCount, isVisible }: { totalCount?: num
     }
   }, [])
 
-  // Update cursor when shift is pressed/released
+  // Update cursor when shift/control is pressed/released and toggle rotate only for Shift+Ctrl combination
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Shift') {
@@ -234,11 +242,32 @@ export default function SamplesMap({ totalCount, isVisible }: { totalCount?: num
         setShowShiftHint(false)
         if (mapRef.current) mapRef.current.getCanvas().style.cursor = 'crosshair'
       }
+      if (e.key === 'Control') {
+        setIsCtrlDown(true)
+        // Do not disable rotate on Ctrl alone
+      }
+      if ((e.key === 'Control' || e.key === 'Shift') && mapRef.current) {
+        const nextShift = e.key === 'Shift' ? true : isShiftDown
+        const nextCtrl = e.key === 'Control' ? true : isCtrlDown
+        const both = nextShift && nextCtrl
+        if (both) mapRef.current.dragRotate.disable()
+        else mapRef.current.dragRotate.enable()
+      }
     }
     const onKeyUp = (e: KeyboardEvent) => {
       if (e.key === 'Shift') {
         setIsShiftDown(false)
         if (mapRef.current) mapRef.current.getCanvas().style.cursor = ''
+      }
+      if (e.key === 'Control') {
+        setIsCtrlDown(false)
+      }
+      if ((e.key === 'Control' || e.key === 'Shift') && mapRef.current) {
+        const nextShift = e.key === 'Shift' ? false : isShiftDown
+        const nextCtrl = e.key === 'Control' ? false : isCtrlDown
+        const both = nextShift && nextCtrl
+        if (both) mapRef.current.dragRotate.disable()
+        else mapRef.current.dragRotate.enable()
       }
     }
     window.addEventListener('keydown', onKeyDown)
@@ -335,7 +364,12 @@ export default function SamplesMap({ totalCount, isVisible }: { totalCount?: num
         <div className="absolute left-1/2 top-2 z-20 -translate-x-1/2">
           <div className="flex items-center gap-2 rounded bg-white/90 backdrop-blur px-2 py-1 text-xs text-gray-700 shadow border">
             <span className="rounded border px-1 py-0.5 bg-gray-100">Shift</span>
-            <span>+ drag to select samples</span>
+            <span>+ drag to select</span>
+            <span className="text-gray-400">|</span>
+            <span className="rounded border px-1 py-0.5 bg-gray-100">Shift</span>
+            <span>+</span>
+            <span className="rounded border px-1 py-0.5 bg-gray-100">Ctrl</span>
+            <span>to unselect</span>
             <button type="button" className="ml-1 text-gray-500 hover:text-gray-700" onClick={() => setShowShiftHint(false)} aria-label="Dismiss selection hint">×</button>
           </div>
         </div>
