@@ -18,7 +18,6 @@ export default function Samples() {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
-        <h1 className="text-2xl font-semibold">Samples</h1>
         {isLoading ? (
           <span className="inline-flex items-center rounded-full bg-gray-700 text-white text-xs px-2 py-0.5" aria-live="polite" aria-busy="true">
             <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-white/30 border-t-white" />
@@ -28,7 +27,8 @@ export default function Samples() {
             {totalCount.toLocaleString()}
           </span>
         )}
-      </div>
+        <span className="text-lgfont-semibold">Samples</span>
+        </div>
       <div className="flex items-center justify-between">
         <SampleFilterBar />
         <div className="flex items-center gap-2" role="tablist" aria-label="View mode">

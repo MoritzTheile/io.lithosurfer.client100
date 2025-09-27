@@ -80,6 +80,10 @@ export default function Layout({ children }: PropsWithChildren) {
           <Link to="/" className="inline-flex items-center gap-2">
             <img src="/logo.png" alt="Data Metallogenica" className="h-9 w-auto" />
           </Link>
+          {/* Centered heading */}
+          <div className="absolute left-1/2 -translate-x-1/2 pointer-events-none text-center">
+            <span className="font-bold text-lg sm:text-2xl text-gray-900 leading-none">Global Ore Deposits</span>
+          </div>
           <div className="flex-1" />
           <div className="hidden sm:flex items-center gap-2 text-xs text-gray-600">
             <span className="uppercase tracking-wide">Powered by</span>
