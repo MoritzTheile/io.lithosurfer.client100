@@ -50,6 +50,10 @@ export async function getSamplesGeoFeatureCollection(paramsInput?: SampleCriteri
   return http<GeoJSONFeatureCollection>(path, { method: 'GET' })
 }
 
+export async function getSampleWithLocationById(id: string) {
+  return http<SampleRecord>(`/api/core/sample-with-locations/${encodeURIComponent(id)}`, { method: 'GET' })
+}
+
 // (moved LithoUser API to features/auth/api.ts)
 
 

@@ -3,9 +3,10 @@ import SampleFilterBar from '../components/SampleFilterBar'
 import SamplesMap from '../components/SamplesMap'
 import SamplesList from '../components/SamplesList'
 import SelectionBar from '../components/SelectionBar'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { MapIcon, TableIcon } from '../../../lib/icons'
 import { useSamplesQuery } from '../features/useSamplesQuery'
+import { getSampleWithLocationById } from '../features/api'
 
 export default function Samples() {
 
@@ -14,6 +15,20 @@ export default function Samples() {
   const { data, isLoading, isError, error } = useSamplesQuery()
   
   const totalCount = data?.totalCount ?? 0
+
+  const [detailId, setDetailId] = useState<string | null>(null)
+  const [detailData, setDetailData] = useState<any | null>(null)
+  const [detailLoading, setDetailLoading] = useState(false)
+
+  useEffect(() => {
+    if (!detailId) return
+    let cancelled = false
+    setDetailLoading(true)
+    getSampleWithLocationById(detailId)
+      .then((d) => { if (!cancelled) setDetailData(d) })
+      .finally(() => { if (!cancelled) setDetailLoading(false) })
+    return () => { cancelled = true }
+  }, [detailId])
 
   return (
     <div className="space-y-4">
@@ -54,11 +69,32 @@ export default function Samples() {
       </div>
       <SelectionBar />
       <div className={mode === 'map' ? '' : 'hidden'}>
-        <SamplesMap totalCount={totalCount} isVisible={mode === 'map'} />
+        <SamplesMap totalCount={totalCount} isVisible={mode === 'map'} onOpenDetail={(id) => setDetailId(id)} />
       </div>
       <div className={mode === 'table' ? '' : 'hidden'}>
         <SamplesList />
       </div>
+      {detailId && (
+        <div className="fixed inset-0 z-50">
+          <div className="absolute inset-0 bg-black/40" onClick={() => { setDetailId(null); setDetailData(null) }} />
+          <div className="absolute inset-0 z-10 bg-white overflow-auto">
+            <div className="sticky top-0 flex items-center justify-between border-b px-4 py-3 bg-white">
+              <h2 className="text-lg font-semibold">Sample {detailId}</h2>
+              <div className="flex items-center gap-2">
+                {detailLoading && <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-gray-400/30 border-t-gray-600" />}
+                <button className="rounded-md border px-3 py-1 text-sm bg-white hover:bg-gray-50" onClick={() => { setDetailId(null); setDetailData(null) }}>Close</button>
+              </div>
+            </div>
+            <div className="p-4">
+              {detailData ? (
+                <pre className="text-xs whitespace-pre-wrap break-words">{JSON.stringify(detailData, null, 2)}</pre>
+              ) : (
+                <div className="text-sm text-gray-600">{detailLoading ? 'Loading…' : 'No details found.'}</div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

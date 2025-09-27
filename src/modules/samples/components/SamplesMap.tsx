@@ -8,7 +8,7 @@ import { useSampleFilter } from '../features/sampleFilter'
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN as string
 
-export default function SamplesMap({ totalCount, isVisible }: { totalCount?: number, isVisible?: boolean }) {
+export default function SamplesMap({ totalCount, isVisible, onOpenDetail }: { totalCount?: number, isVisible?: boolean, onOpenDetail?: (id: string) => void }) {
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<mapboxgl.Map | null>(null)
   const { debouncedSearchText, allowedAccess, createdByIdEquals, setBbox, bboxMinLat, bboxMaxLat, bboxMinLon, bboxMaxLon } = useSampleFilter()
@@ -157,6 +157,8 @@ export default function SamplesMap({ totalCount, isVisible }: { totalCount?: num
             if (!id) return
             if (selectionRef.current.selectionMode) {
               toggle(String(id))
+            } else if (onOpenDetail) {
+              onOpenDetail(String(id))
             } else {
               const url = `/samples/${id}`
               window.history.pushState({}, '', url)
