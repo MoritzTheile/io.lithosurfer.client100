@@ -10,12 +10,19 @@ type SampleFilterState = {
   allowedAccess?: AllowedAccess
   createdByIdEquals?: string
   totalCount: number
+  // Bounding box (minLon, minLat, maxLon, maxLat)
+  bboxMinLon?: number
+  bboxMinLat?: number
+  bboxMaxLon?: number
+  bboxMaxLat?: number
   setSearchText: (v: string) => void
   setPage: (v: number) => void
   setSize: (v: number) => void
   setAllowedAccess: (v: AllowedAccess | undefined) => void
   setCreatedByIdEquals: (v: string | undefined) => void
   setTotalCount: (n: number) => void
+  setBbox: (minLon: number, minLat: number, maxLon: number, maxLat: number) => void
+  clearBbox: () => void
   clearFilters: () => void
 }
 
@@ -29,6 +36,10 @@ const useSampleFilterStore = create<SampleFilterState>((set) => ({
   allowedAccess: 'VIEWABLE',
   createdByIdEquals: undefined,
   totalCount: 0,
+  bboxMinLon: undefined,
+  bboxMinLat: undefined,
+  bboxMaxLon: undefined,
+  bboxMaxLat: undefined,
   setSearchText: (v: string) => {
     if (typeof window !== 'undefined' && debounceTimer) {
       window.clearTimeout(debounceTimer)
@@ -45,7 +56,10 @@ const useSampleFilterStore = create<SampleFilterState>((set) => ({
   setAllowedAccess: (v: AllowedAccess | undefined) => set({ allowedAccess: v }),
   setCreatedByIdEquals: (v: string | undefined) => set({ createdByIdEquals: v, page: 0 }),
   setTotalCount: (n: number) => set({ totalCount: n }),
-  clearFilters: () => set({ searchText: '', createdByIdEquals: undefined, page: 0 }),
+  setBbox: (minLon: number, minLat: number, maxLon: number, maxLat: number) =>
+    set({ bboxMinLon: minLon, bboxMinLat: minLat, bboxMaxLon: maxLon, bboxMaxLat: maxLat, page: 0 }),
+  clearBbox: () => set({ bboxMinLon: undefined, bboxMinLat: undefined, bboxMaxLon: undefined, bboxMaxLat: undefined, page: 0 }),
+  clearFilters: () => set({ searchText: '', createdByIdEquals: undefined, page: 0, bboxMinLon: undefined, bboxMinLat: undefined, bboxMaxLon: undefined, bboxMaxLat: undefined }),
 }))
 
 export function useSampleFilter(): SampleFilterState {

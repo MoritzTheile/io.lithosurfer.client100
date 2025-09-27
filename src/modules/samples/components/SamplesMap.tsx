@@ -9,7 +9,7 @@ mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN as string
 export default function SamplesMap({ totalCount }: { totalCount?: number }) {
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<mapboxgl.Map | null>(null)
-  const { debouncedSearchText, allowedAccess, createdByIdEquals } = useSampleFilter()
+  const { debouncedSearchText, allowedAccess, createdByIdEquals, setBbox, bboxMinLat, bboxMaxLat, bboxMinLon, bboxMaxLon } = useSampleFilter()
   const [isLoading, setIsLoading] = useState(false)
   const latestRequestIdRef = useRef(0)
   const EMPTY_GEOJSON = { type: 'FeatureCollection', features: [] } as const
@@ -19,10 +19,10 @@ export default function SamplesMap({ totalCount }: { totalCount?: number }) {
   const lastAppliedStyleIdRef = useRef<string>('satellite-streets-v12')
 
   // Keep latest params in refs for event handlers
-  const paramsRef = useRef({ debouncedSearchText, allowedAccess, createdByIdEquals, exceedsLimit })
+  const paramsRef = useRef({ debouncedSearchText, allowedAccess, createdByIdEquals, exceedsLimit, bboxMinLat, bboxMaxLat, bboxMinLon, bboxMaxLon })
   useEffect(() => {
-    paramsRef.current = { debouncedSearchText, allowedAccess, createdByIdEquals, exceedsLimit }
-  }, [debouncedSearchText, allowedAccess, createdByIdEquals, exceedsLimit])
+    paramsRef.current = { debouncedSearchText, allowedAccess, createdByIdEquals, exceedsLimit, bboxMinLat, bboxMaxLat, bboxMinLon, bboxMaxLon }
+  }, [debouncedSearchText, allowedAccess, createdByIdEquals, exceedsLimit, bboxMinLat, bboxMaxLat, bboxMinLon, bboxMaxLon])
 
   function finishLoadingWithMinDelay(startedAtMs: number, requestId: number) {
     const MIN_VISIBLE_MS = 300
@@ -79,7 +79,7 @@ export default function SamplesMap({ totalCount }: { totalCount?: number }) {
           })
         }
 
-        const { debouncedSearchText: dText, allowedAccess: access, createdByIdEquals: createdBy, exceedsLimit: limitNow } = paramsRef.current
+        const { debouncedSearchText: dText, allowedAccess: access, createdByIdEquals: createdBy, exceedsLimit: limitNow, bboxMinLat: minLat, bboxMaxLat: maxLat, bboxMinLon: minLon, bboxMaxLon: maxLon } = paramsRef.current
         if (limitNow) {
           setIsLoading(false)
           return
@@ -92,6 +92,10 @@ export default function SamplesMap({ totalCount }: { totalCount?: number }) {
           nameContains: dText || undefined,
           allowedAccess: access,
           createdByIdEquals: createdBy,
+          minLat,
+          maxLat,
+          minLon,
+          maxLon,
         })
         if (!mapRef.current) return
         const source = mapRef.current.getSource('samples') as mapboxgl.GeoJSONSource
@@ -107,6 +111,17 @@ export default function SamplesMap({ totalCount }: { totalCount?: number }) {
 
     mapRef.current.on('load', onLoad)
     mapRef.current.on('style.load', onLoad)
+    mapRef.current.on('moveend', () => {
+      const map = mapRef.current
+      if (!map) return
+      const bounds = map.getBounds() as mapboxgl.LngLatBounds
+      // Mapbox returns sw (minLat/minLng) and ne (maxLat/maxLng)
+      const minLon = bounds.getWest()
+      const minLat = bounds.getSouth()
+      const maxLon = bounds.getEast()
+      const maxLat = bounds.getNorth()
+      setBbox(minLon, minLat, maxLon, maxLat)
+    })
 
     return () => {
       if (mapRef.current) {
