@@ -37,6 +37,20 @@ export default function SamplesMap({ totalCount, isVisible }: { totalCount?: num
     }, remaining)
   }
 
+  function applySelectedFilterIfPresent() {
+    const map = mapRef.current
+    if (!map) return
+    const layerId = 'samples-circle-selected'
+    if (!map.getLayer(layerId)) return
+    const ids = Array.from(selectedIds || []).map(String)
+    const filter: any = [
+      'in',
+      ['to-string', ['coalesce', ['get', 'id'], ['get', 'sampleId']]],
+      ['literal', ids],
+    ]
+    map.setFilter(layerId, filter)
+  }
+
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return
 
@@ -86,6 +100,7 @@ export default function SamplesMap({ totalCount, isVisible }: { totalCount?: num
               ['literal', []],
             ] as any,
           })
+          applySelectedFilterIfPresent()
           mapRef.current.on('click', (e) => {
             if (!mapRef.current) return
             const features = mapRef.current.queryRenderedFeatures(e.point, {
@@ -132,6 +147,7 @@ export default function SamplesMap({ totalCount, isVisible }: { totalCount?: num
         if (requestId === latestRequestIdRef.current) {
           source.setData(geojson as any)
         }
+        applySelectedFilterIfPresent()
         finishLoadingWithMinDelay(startedAt, requestId)
       } catch (e) {
         // eslint-disable-next-line no-console
@@ -228,6 +244,7 @@ export default function SamplesMap({ totalCount, isVisible }: { totalCount?: num
         if (requestId === latestRequestIdRef.current) {
           source?.setData(geojson as any)
         }
+        applySelectedFilterIfPresent()
         finishLoadingWithMinDelay(startedAt, requestId)
       } catch (e) {
         // eslint-disable-next-line no-console
