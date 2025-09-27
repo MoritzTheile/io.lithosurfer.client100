@@ -6,13 +6,15 @@ import { useSampleFilter } from '../features/sampleFilter'
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN as string
 
-export default function SamplesMap() {
+export default function SamplesMap({ totalCount }: { totalCount?: number }) {
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<mapboxgl.Map | null>(null)
   const { debouncedSearchText, allowedAccess, createdByIdEquals } = useSampleFilter()
   const [isLoading, setIsLoading] = useState(false)
   const latestRequestIdRef = useRef(0)
   const EMPTY_GEOJSON = { type: 'FeatureCollection', features: [] } as const
+  const MAX_FEATURES_FOR_MAP = 100000
+  const exceedsLimit = (totalCount ?? 0) > MAX_FEATURES_FOR_MAP
 
   function finishLoadingWithMinDelay(startedAtMs: number, requestId: number) {
     const MIN_VISIBLE_MS = 300
@@ -69,6 +71,11 @@ export default function SamplesMap() {
           })
         }
 
+        if (exceedsLimit) {
+          setIsLoading(false)
+          return
+        }
+
         setIsLoading(true)
         const requestId = ++latestRequestIdRef.current
         const startedAt = performance.now()
@@ -104,12 +111,19 @@ export default function SamplesMap() {
     if (!mapRef.current) return
     ;(async () => {
       try {
-        setIsLoading(true)
-        const requestId = ++latestRequestIdRef.current
-        const startedAt = performance.now()
         const map = mapRef.current
         if (!map) return
         const existingSource = map.getSource('samples') as mapboxgl.GeoJSONSource | undefined
+        if (exceedsLimit) {
+          // Clear data and skip fetch when exceeding limit
+          existingSource?.setData(EMPTY_GEOJSON as any)
+          setIsLoading(false)
+          return
+        }
+
+        setIsLoading(true)
+        const requestId = ++latestRequestIdRef.current
+        const startedAt = performance.now()
         // Clear outdated data while fetching
         existingSource?.setData(EMPTY_GEOJSON as any)
         const geojson = await getSamplesGeoFeatureCollection({
@@ -128,11 +142,18 @@ export default function SamplesMap() {
         console.error('Failed to refresh GeoJSON', e)
       }
     })()
-  }, [debouncedSearchText, allowedAccess, createdByIdEquals])
+  }, [debouncedSearchText, allowedAccess, createdByIdEquals, totalCount])
 
   return (
     <div className="relative w-full h-[70vh]">
       <div ref={mapContainerRef} className="w-full h-full rounded-lg border" />
+      {exceedsLimit && (
+        <div className="pointer-events-none absolute left-1/2 top-2 z-20 -translate-x-1/2">
+          <div className="rounded-md border border-yellow-300 bg-yellow-50 text-yellow-800 px-3 py-2 text-sm shadow">
+            Data exceeds 100k records, please filter down to see on map.
+          </div>
+        </div>
+      )}
       {isLoading && (
         <div className="absolute inset-0 z-10 rounded-lg bg-white/60 backdrop-blur-sm flex items-center justify-center" aria-busy="true" aria-live="polite">
           <span className="inline-block h-10 w-10 animate-spin rounded-full border-4 border-gray-400/30 border-t-gray-600" />

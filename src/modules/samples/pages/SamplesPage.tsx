@@ -9,7 +9,7 @@ import { useSamplesQuery } from '../features/useSamplesQuery'
 
 export default function Samples() {
 
-  const [mode, setMode] = useState<'table' | 'map'>('table')
+  const [mode, setMode] = useState<'table' | 'map'>('map')
 
   const { data, isLoading, isError, error } = useSamplesQuery()
   
@@ -33,15 +33,6 @@ export default function Samples() {
         <SampleFilterBar />
         <div className="flex items-center gap-2" role="tablist" aria-label="View mode">
           <button
-            aria-pressed={mode === 'table'}
-            title="Table view"
-            className={`inline-flex items-center gap-2 rounded-md border px-3 py-1 text-sm ${mode === 'table' ? 'bg-gray-100 text-gray-900' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
-            onClick={() => setMode('table')}
-          >
-            <TableIcon className="h-4 w-4" />
-            <span className="hidden sm:inline">Table</span>
-          </button>
-          <button
             aria-pressed={mode === 'map'}
             title="Map view"
             className={`inline-flex items-center gap-2 rounded-md border px-3 py-1 text-sm ${mode === 'map' ? 'bg-gray-100 text-gray-900' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
@@ -50,17 +41,20 @@ export default function Samples() {
             <MapIcon className="h-4 w-4" />
             <span className="hidden sm:inline">Map</span>
           </button>
+          <button
+            aria-pressed={mode === 'table'}
+            title="Table view"
+            className={`inline-flex items-center gap-2 rounded-md border px-3 py-1 text-sm ${mode === 'table' ? 'bg-gray-100 text-gray-900' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+            onClick={() => setMode('table')}
+          >
+            <TableIcon className="h-4 w-4" />
+            <span className="hidden sm:inline">Table</span>
+          </button>
         </div>
       </div>
       <SelectionBar />
       {mode === 'map' ? (
-        totalCount > 100000 ? (
-          <div className="rounded-md border border-yellow-300 bg-yellow-50 text-yellow-800 px-3 py-2 text-sm">
-            Data exceeds 100k records, please filter down to see on map.
-          </div>
-        ) : (
-          <SamplesMap />
-        )
+        <SamplesMap totalCount={totalCount} />
       ) : (
         <SamplesList />
       )}
