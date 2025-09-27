@@ -34,7 +34,7 @@ export default function Layout({ children }: PropsWithChildren) {
           className={`absolute inset-y-0 left-0 bg-white border-r border-gray-200 w-64 transform transition-transform duration-200 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
         >
           <div className="h-16 flex items-center px-4">
-            <span className="font-semibold text-lg truncate">LithoSurfer </span>
+            <span className="font-semibold text-lg truncate"> </span>
           </div>
           <nav className="px-2 space-y-1">
             <SidebarNav isAuthenticated={isAuthenticated} onItemClick={() => setSidebarOpen(false)} />
@@ -77,9 +77,14 @@ export default function Layout({ children }: PropsWithChildren) {
               <path strokeLinecap="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
-          <Link to="/" className="font-semibold">
-            LithoSurfer
+          <Link to="/" className="inline-flex items-center gap-2">
+            <img src="/statics/logo.png" alt="Data Metallogenica" className="h-9 w-auto" />
           </Link>
+          <div className="flex-1" />
+          <div className="hidden sm:flex items-center gap-2 text-xs text-gray-600">
+            <span className="uppercase tracking-wide">Powered by</span>
+            <img src="/statics/lithodat.logo.png" alt="LithoDat" className="h-5 w-auto" />
+          </div>
         </header>
 
         {/* Main content */}
