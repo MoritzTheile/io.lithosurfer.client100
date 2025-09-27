@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { getSamplesGeoFeatureCollection } from '../features/api'
+import { FullscreenIcon } from '../../../lib/icons'
 import { useSampleSelection } from '../features/selection'
 import { useSampleFilter } from '../features/sampleFilter'
 
@@ -34,6 +35,17 @@ export default function SamplesMap({ totalCount, isVisible }: { totalCount?: num
   useEffect(() => {
     selectionRef.current = { selectionMode, selectionAction }
   }, [selectionMode, selectionAction])
+
+  function repositionMapboxControls() {
+    const map = mapRef.current
+    if (!map) return
+    const container = map.getContainer()
+    const topRight = container.querySelector('.mapboxgl-ctrl-top-right') as HTMLElement | null
+    if (topRight) {
+      topRight.style.top = '44px'
+      topRight.style.right = '8px'
+    }
+  }
 
   function finishLoadingWithMinDelay(startedAtMs: number, requestId: number) {
     const MIN_VISIBLE_MS = 300
@@ -71,6 +83,8 @@ export default function SamplesMap({ totalCount, isVisible }: { totalCount?: num
     })
 
     mapRef.current.addControl(new mapboxgl.NavigationControl(), 'top-right')
+    // Push zoom controls down so our buttons don't overlap
+    repositionMapboxControls()
 
     const onLoad = async () => {
       try {
@@ -166,6 +180,7 @@ export default function SamplesMap({ totalCount, isVisible }: { totalCount?: num
 
     mapRef.current.on('load', onLoad)
     mapRef.current.on('style.load', onLoad)
+    mapRef.current.on('style.load', repositionMapboxControls)
     mapRef.current.on('moveend', () => {
       const map = mapRef.current
       if (!map) return
@@ -234,6 +249,7 @@ export default function SamplesMap({ totalCount, isVisible }: { totalCount?: num
       if (mapRef.current) {
         mapRef.current.off('load', onLoad)
         mapRef.current.off('style.load', onLoad)
+        mapRef.current.off('style.load', repositionMapboxControls)
         mapRef.current.off('mousedown', onPointerDown)
         mapRef.current.off('touchstart', onPointerDown)
         mapRef.current.remove()
@@ -333,7 +349,7 @@ export default function SamplesMap({ totalCount, isVisible }: { totalCount?: num
   }, [debouncedSearchText, allowedAccess, createdByIdEquals, totalCount, bboxMinLat, bboxMaxLat, bboxMinLon, bboxMaxLon])
 
   return (
-    <div className="relative w-full h-[70vh]">
+    <div className={`relative w-full h-[70vh]`} id="samples-map-root">
       <div ref={mapContainerRef} className="w-full h-full rounded-lg border" />
       {/* Selection controls (mobile-friendly) */}
       <div className="absolute left-2 top-12 z-20 flex items-center gap-1 rounded bg-white/90 backdrop-blur px-2 py-1 text-xs text-gray-700 shadow border">
@@ -392,6 +408,29 @@ export default function SamplesMap({ totalCount, isVisible }: { totalCount?: num
           <option value="light-v11">Light</option>
           <option value="dark-v11">Dark</option>
         </select>
+      </div>
+      {/* Fullscreen toggle */}
+      <div className="absolute right-2 top-2 z-20">
+        <button
+          type="button"
+          className="inline-flex items-center gap-1 rounded border bg-white/90 backdrop-blur px-2 py-1 text-xs shadow hover:bg-white"
+          onClick={() => {
+            const root = document.getElementById('samples-map-root')
+            if (!root) return
+            const doc: any = document
+            if (!doc.fullscreenElement) {
+              root.requestFullscreen?.()
+            } else {
+              doc.exitFullscreen?.()
+            }
+            // Resize after enter/exit fullscreen to reflow map
+            setTimeout(() => mapRef.current?.resize(), 200)
+          }}
+          title="Toggle fullscreen"
+        >
+          <FullscreenIcon className="h-4 w-4" />
+          <span className="hidden sm:inline">Fullscreen</span>
+        </button>
       </div>
       {exceedsLimit && (
         <div className="pointer-events-none absolute left-1/2 top-2 z-20 -translate-x-1/2">
