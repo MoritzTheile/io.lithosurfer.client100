@@ -21,6 +21,7 @@ export default function SamplesMap({ totalCount, isVisible }: { totalCount?: num
   const lastAppliedStyleIdRef = useRef<string>('satellite-streets-v12')
   const [box, setBox] = useState<{ x0: number; y0: number; x1: number; y1: number } | null>(null)
   const [isShiftDown, setIsShiftDown] = useState(false)
+  const [showShiftHint, setShowShiftHint] = useState(true)
 
   // Keep latest params in refs for event handlers
   const paramsRef = useRef({ debouncedSearchText, allowedAccess, createdByIdEquals, exceedsLimit, bboxMinLat, bboxMaxLat, bboxMinLon, bboxMaxLon })
@@ -80,9 +81,9 @@ export default function SamplesMap({ totalCount, isVisible }: { totalCount?: num
             source: 'samples',
             paint: {
               'circle-radius': 4,
-              'circle-color': '#2563eb',
+              'circle-color': '#ffffff',
               'circle-stroke-width': 1,
-              'circle-stroke-color': '#ffffff',
+              'circle-stroke-color': '#777777',
             },
           })
           // Selected samples layer (on top)
@@ -91,9 +92,9 @@ export default function SamplesMap({ totalCount, isVisible }: { totalCount?: num
             type: 'circle',
             source: 'samples',
             paint: {
-              'circle-radius': 10,
-              'circle-color': '#ef4444',
-              'circle-stroke-width': 2,
+              'circle-radius': 4,
+              'circle-color': '#2563eb',
+              'circle-stroke-width': 1,
               'circle-stroke-color': '#ffffff',
             },
             filter: [
@@ -230,6 +231,7 @@ export default function SamplesMap({ totalCount, isVisible }: { totalCount?: num
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Shift') {
         setIsShiftDown(true)
+        setShowShiftHint(false)
         if (mapRef.current) mapRef.current.getCanvas().style.cursor = 'crosshair'
       }
     }
@@ -329,6 +331,15 @@ export default function SamplesMap({ totalCount, isVisible }: { totalCount?: num
   return (
     <div className="relative w-full h-[70vh]">
       <div ref={mapContainerRef} className="w-full h-full rounded-lg border" />
+      {showShiftHint && !isShiftDown && !box && (
+        <div className="absolute left-1/2 top-2 z-20 -translate-x-1/2">
+          <div className="flex items-center gap-2 rounded bg-white/90 backdrop-blur px-2 py-1 text-xs text-gray-700 shadow border">
+            <span className="rounded border px-1 py-0.5 bg-gray-100">Shift</span>
+            <span>+ drag to select samples</span>
+            <button type="button" className="ml-1 text-gray-500 hover:text-gray-700" onClick={() => setShowShiftHint(false)} aria-label="Dismiss selection hint">×</button>
+          </div>
+        </div>
+      )}
       {box && (
         <div
           className="absolute z-30 border-2 border-emerald-500 bg-emerald-400/10"
