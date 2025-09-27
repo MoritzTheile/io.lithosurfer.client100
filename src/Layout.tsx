@@ -78,12 +78,12 @@ export default function Layout({ children }: PropsWithChildren) {
             </svg>
           </button>
           <Link to="/" className="inline-flex items-center gap-2">
-            <img src="/public/logo.png" alt="Data Metallogenica" className="h-9 w-auto" />
+            <img src="./logo.png" alt="Data Metallogenica" className="h-9 w-auto" />
           </Link>
           <div className="flex-1" />
           <div className="hidden sm:flex items-center gap-2 text-xs text-gray-600">
             <span className="uppercase tracking-wide">Powered by</span>
-            <img src="/public/lithodat.logo.png" alt="LithoDat" className="h-5 w-auto" />
+            <img src="./lithodat.logo.png" alt="LithoDat" className="h-5 w-auto" />
           </div>
         </header>
 
