@@ -15,6 +15,10 @@ type SampleFilterState = {
   bboxMinLat?: number
   bboxMaxLon?: number
   bboxMaxLat?: number
+  debouncedBboxMinLon?: number
+  debouncedBboxMinLat?: number
+  debouncedBboxMaxLon?: number
+  debouncedBboxMaxLat?: number
   setSearchText: (v: string) => void
   setPage: (v: number) => void
   setSize: (v: number) => void
@@ -27,6 +31,7 @@ type SampleFilterState = {
 }
 
 let debounceTimer: number | undefined
+let bboxDebounceTimer: number | undefined
 
 const useSampleFilterStore = create<SampleFilterState>((set) => ({
   searchText: '',
@@ -40,6 +45,10 @@ const useSampleFilterStore = create<SampleFilterState>((set) => ({
   bboxMinLat: undefined,
   bboxMaxLon: undefined,
   bboxMaxLat: undefined,
+  debouncedBboxMinLon: undefined,
+  debouncedBboxMinLat: undefined,
+  debouncedBboxMaxLon: undefined,
+  debouncedBboxMaxLat: undefined,
   setSearchText: (v: string) => {
     if (typeof window !== 'undefined' && debounceTimer) {
       window.clearTimeout(debounceTimer)
@@ -56,10 +65,24 @@ const useSampleFilterStore = create<SampleFilterState>((set) => ({
   setAllowedAccess: (v: AllowedAccess | undefined) => set({ allowedAccess: v }),
   setCreatedByIdEquals: (v: string | undefined) => set({ createdByIdEquals: v, page: 0 }),
   setTotalCount: (n: number) => set({ totalCount: n }),
-  setBbox: (minLon: number, minLat: number, maxLon: number, maxLat: number) =>
-    set({ bboxMinLon: minLon, bboxMinLat: minLat, bboxMaxLon: maxLon, bboxMaxLat: maxLat, page: 0 }),
-  clearBbox: () => set({ bboxMinLon: undefined, bboxMinLat: undefined, bboxMaxLon: undefined, bboxMaxLat: undefined, page: 0 }),
-  clearFilters: () => set({ searchText: '', createdByIdEquals: undefined, page: 0, bboxMinLon: undefined, bboxMinLat: undefined, bboxMaxLon: undefined, bboxMaxLat: undefined }),
+  setBbox: (minLon: number, minLat: number, maxLon: number, maxLat: number) => {
+    if (typeof window !== 'undefined' && bboxDebounceTimer) {
+      window.clearTimeout(bboxDebounceTimer)
+    }
+    set({ bboxMinLon: minLon, bboxMinLat: minLat, bboxMaxLon: maxLon, bboxMaxLat: maxLat, page: 0 })
+    if (typeof window !== 'undefined') {
+      bboxDebounceTimer = window.setTimeout(() => {
+        set({ debouncedBboxMinLon: minLon, debouncedBboxMinLat: minLat, debouncedBboxMaxLon: maxLon, debouncedBboxMaxLat: maxLat })
+      }, 2500)
+    }
+  },
+  clearBbox: () => {
+    if (typeof window !== 'undefined' && bboxDebounceTimer) {
+      window.clearTimeout(bboxDebounceTimer)
+    }
+    set({ bboxMinLon: undefined, bboxMinLat: undefined, bboxMaxLon: undefined, bboxMaxLat: undefined, debouncedBboxMinLon: undefined, debouncedBboxMinLat: undefined, debouncedBboxMaxLon: undefined, debouncedBboxMaxLat: undefined, page: 0 })
+  },
+  clearFilters: () => set({ searchText: '', createdByIdEquals: undefined, page: 0, bboxMinLon: undefined, bboxMinLat: undefined, bboxMaxLon: undefined, bboxMaxLat: undefined, debouncedBboxMinLon: undefined, debouncedBboxMinLat: undefined, debouncedBboxMaxLon: undefined, debouncedBboxMaxLat: undefined }),
 }))
 
 export function useSampleFilter(): SampleFilterState {

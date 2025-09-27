@@ -6,19 +6,19 @@ import { useSampleFilter } from './sampleFilter'
 type SamplesQueryData = { rows: SampleRecord[]; totalCount: number }
 
 export function useSamplesQuery() {
-  const { page, size, debouncedSearchText, createdByIdEquals, bboxMinLat, bboxMaxLat, bboxMinLon, bboxMaxLon } = useSampleFilter()
+  const { page, size, debouncedSearchText, createdByIdEquals, debouncedBboxMinLat, debouncedBboxMaxLat, debouncedBboxMinLon, debouncedBboxMaxLon } = useSampleFilter()
 
   const q = useQuery<{ items: SampleRecord[]; totalCount: number }, Error, SamplesQueryData>({
-    queryKey: ['samples', page, size, debouncedSearchText, createdByIdEquals, bboxMinLat, bboxMaxLat, bboxMinLon, bboxMaxLon],
+    queryKey: ['samples', page, size, debouncedSearchText, createdByIdEquals, debouncedBboxMinLat, debouncedBboxMaxLat, debouncedBboxMinLon, debouncedBboxMaxLon],
     queryFn: () =>
       getSamplesWithLocations(page, size, {
         allowedAccess: 'VIEWABLE',
         nameContains: debouncedSearchText || undefined,
         createdByIdEquals,
-        minLat: bboxMinLat,
-        maxLat: bboxMaxLat,
-        minLon: bboxMinLon,
-        maxLon: bboxMaxLon,
+        minLat: debouncedBboxMinLat,
+        maxLat: debouncedBboxMaxLat,
+        minLon: debouncedBboxMinLon,
+        maxLon: debouncedBboxMaxLon,
       }),
     placeholderData: keepPreviousData,
     select: (res): SamplesQueryData => ({ rows: res.items, totalCount: res.totalCount }),

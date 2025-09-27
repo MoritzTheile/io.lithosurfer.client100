@@ -145,18 +145,17 @@ export default function SamplesMap({ totalCount }: { totalCount?: number }) {
 
   useEffect(() => {
     if (!mapRef.current) return
-    ;(async () => {
-      try {
-        const map = mapRef.current
-        if (!map) return
-        const existingSource = map.getSource('samples') as mapboxgl.GeoJSONSource | undefined
-        if (exceedsLimit) {
-          // Clear data and skip fetch when exceeding limit
-          existingSource?.setData(EMPTY_GEOJSON as any)
-          setIsLoading(false)
-          return
-        }
+    const map = mapRef.current
+    const existingSource = map.getSource('samples') as mapboxgl.GeoJSONSource | undefined
+    if (exceedsLimit) {
+      existingSource?.setData(EMPTY_GEOJSON as any)
+      setIsLoading(false)
+      return
+    }
 
+    const debounceMs = 1800
+    const timerId = window.setTimeout(async () => {
+      try {
         setIsLoading(true)
         const requestId = ++latestRequestIdRef.current
         const startedAt = performance.now()
@@ -166,9 +165,12 @@ export default function SamplesMap({ totalCount }: { totalCount?: number }) {
           nameContains: debouncedSearchText || undefined,
           allowedAccess: allowedAccess,
           createdByIdEquals,
+          minLat: bboxMinLat,
+          maxLat: bboxMaxLat,
+          minLon: bboxMinLon,
+          maxLon: bboxMaxLon,
         })
         const source = map.getSource('samples') as mapboxgl.GeoJSONSource | undefined
-        // Only update if this is still the latest request
         if (requestId === latestRequestIdRef.current) {
           source?.setData(geojson as any)
         }
@@ -177,8 +179,12 @@ export default function SamplesMap({ totalCount }: { totalCount?: number }) {
         // eslint-disable-next-line no-console
         console.error('Failed to refresh GeoJSON', e)
       }
-    })()
-  }, [debouncedSearchText, allowedAccess, createdByIdEquals, totalCount])
+    }, debounceMs)
+
+    return () => {
+      window.clearTimeout(timerId)
+    }
+  }, [debouncedSearchText, allowedAccess, createdByIdEquals, totalCount, bboxMinLat, bboxMaxLat, bboxMinLon, bboxMaxLon])
 
   return (
     <div className="relative w-full h-[70vh]">
