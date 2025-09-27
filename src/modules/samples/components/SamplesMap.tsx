@@ -15,6 +15,14 @@ export default function SamplesMap({ totalCount }: { totalCount?: number }) {
   const EMPTY_GEOJSON = { type: 'FeatureCollection', features: [] } as const
   const MAX_FEATURES_FOR_MAP = 100000
   const exceedsLimit = (totalCount ?? 0) > MAX_FEATURES_FOR_MAP
+  const [styleId, setStyleId] = useState<'streets-v12' | 'outdoors-v12' | 'satellite-streets-v12' | 'light-v11' | 'dark-v11'>('satellite-streets-v12')
+  const lastAppliedStyleIdRef = useRef<string>('satellite-streets-v12')
+
+  // Keep latest params in refs for event handlers
+  const paramsRef = useRef({ debouncedSearchText, allowedAccess, createdByIdEquals, exceedsLimit })
+  useEffect(() => {
+    paramsRef.current = { debouncedSearchText, allowedAccess, createdByIdEquals, exceedsLimit }
+  }, [debouncedSearchText, allowedAccess, createdByIdEquals, exceedsLimit])
 
   function finishLoadingWithMinDelay(startedAtMs: number, requestId: number) {
     const MIN_VISIBLE_MS = 300
@@ -32,7 +40,7 @@ export default function SamplesMap({ totalCount }: { totalCount?: number }) {
 
     mapRef.current = new mapboxgl.Map({
       container: mapContainerRef.current,
-      style: 'mapbox://styles/mapbox/streets-v12',
+      style: `mapbox://styles/mapbox/${styleId}`,
       center: [133.7751, -25.2744],
       zoom: 3,
     })
@@ -71,7 +79,8 @@ export default function SamplesMap({ totalCount }: { totalCount?: number }) {
           })
         }
 
-        if (exceedsLimit) {
+        const { debouncedSearchText: dText, allowedAccess: access, createdByIdEquals: createdBy, exceedsLimit: limitNow } = paramsRef.current
+        if (limitNow) {
           setIsLoading(false)
           return
         }
@@ -80,9 +89,9 @@ export default function SamplesMap({ totalCount }: { totalCount?: number }) {
         const requestId = ++latestRequestIdRef.current
         const startedAt = performance.now()
         const geojson = await getSamplesGeoFeatureCollection({
-          nameContains: debouncedSearchText || undefined,
-          allowedAccess: allowedAccess,
-          createdByIdEquals,
+          nameContains: dText || undefined,
+          allowedAccess: access,
+          createdByIdEquals: createdBy,
         })
         if (!mapRef.current) return
         const source = mapRef.current.getSource('samples') as mapboxgl.GeoJSONSource
@@ -97,15 +106,27 @@ export default function SamplesMap({ totalCount }: { totalCount?: number }) {
     }
 
     mapRef.current.on('load', onLoad)
+    mapRef.current.on('style.load', onLoad)
 
     return () => {
       if (mapRef.current) {
         mapRef.current.off('load', onLoad)
+        mapRef.current.off('style.load', onLoad)
         mapRef.current.remove()
       }
       mapRef.current = null
     }
   }, [])
+
+  // Change style when styleId updates
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+    const desired = `mapbox://styles/mapbox/${styleId}`
+    if (lastAppliedStyleIdRef.current === styleId) return
+    lastAppliedStyleIdRef.current = styleId
+    map.setStyle(desired)
+  }, [styleId])
 
   useEffect(() => {
     if (!mapRef.current) return
@@ -147,6 +168,23 @@ export default function SamplesMap({ totalCount }: { totalCount?: number }) {
   return (
     <div className="relative w-full h-[70vh]">
       <div ref={mapContainerRef} className="w-full h-full rounded-lg border" />
+      {/* Basemap style switcher (compact select) */}
+      <div className="absolute left-2 top-2 z-20">
+        <label htmlFor="basemap-style" className="sr-only">Basemap style</label>
+        <select
+          id="basemap-style"
+          className="text-xs rounded border bg-white/90 backdrop-blur px-2 py-1 shadow focus:outline-none"
+          value={styleId}
+          onChange={(e) => setStyleId(e.target.value as any)}
+          title="Basemap style"
+        >
+          <option value="satellite-streets-v12">Satellite</option>
+          <option value="streets-v12">Streets</option>
+          <option value="outdoors-v12">Outdoors</option>
+          <option value="light-v11">Light</option>
+          <option value="dark-v11">Dark</option>
+        </select>
+      </div>
       {exceedsLimit && (
         <div className="pointer-events-none absolute left-1/2 top-2 z-20 -translate-x-1/2">
           <div className="rounded-md border border-yellow-300 bg-yellow-50 text-yellow-800 px-3 py-2 text-sm shadow">
