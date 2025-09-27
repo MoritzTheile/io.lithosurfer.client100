@@ -24,6 +24,7 @@ export default function SamplesMap({ totalCount, isVisible }: { totalCount?: num
   const [selectionMode, setSelectionMode] = useState(false)
   const [selectionAction, setSelectionAction] = useState<'select' | 'unselect'>('select')
   const selectionRef = useRef({ selectionMode, selectionAction })
+  const hoverPopupRef = useRef<mapboxgl.Popup | null>(null)
 
   // Keep latest params in refs for event handlers
   const paramsRef = useRef({ debouncedSearchText, allowedAccess, createdByIdEquals, exceedsLimit, bboxMinLat, bboxMaxLat, bboxMinLon, bboxMaxLon })
@@ -70,6 +71,10 @@ export default function SamplesMap({ totalCount, isVisible }: { totalCount?: num
       ['literal', ids],
     ]
     map.setFilter(layerId, filter)
+  }
+
+  function escapeHtml(input: string): string {
+    return input.replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch] as string))
   }
 
   useEffect(() => {
@@ -124,6 +129,24 @@ export default function SamplesMap({ totalCount, isVisible }: { totalCount?: num
             ] as any,
           })
           applySelectedFilterIfPresent()
+          const showHover = (e: mapboxgl.MapMouseEvent & { features?: any[] }) => {
+            if (!mapRef.current || !e.features || e.features.length === 0) return
+            const feature = e.features[0]
+            const id = feature?.properties?.id ?? feature?.properties?.sampleId
+            const name = feature?.properties?.name ?? feature?.properties?.sampleName ?? ''
+            if (!hoverPopupRef.current) {
+              hoverPopupRef.current = new mapboxgl.Popup({ closeButton: false, closeOnClick: false })
+            }
+            const safeName = typeof name === 'string' ? escapeHtml(name) : String(name ?? '')
+            const safeId = escapeHtml(String(id ?? ''))
+            hoverPopupRef.current
+              .setLngLat(e.lngLat)
+              .setHTML(`<div class="text-xs"><div><span class="text-gray-500">ID:</span> ${safeId}</div><div><span class="text-gray-500">Name:</span> ${safeName}</div></div>`)
+              .addTo(mapRef.current)
+          }
+          const hideHover = () => {
+            if (hoverPopupRef.current) hoverPopupRef.current.remove()
+          }
           mapRef.current.on('click', (e) => {
             if (!mapRef.current) return
             const features = mapRef.current.queryRenderedFeatures(e.point, {
@@ -131,20 +154,32 @@ export default function SamplesMap({ totalCount, isVisible }: { totalCount?: num
             })
             const feature = features && features[0]
             const id = feature && (feature.properties?.id || feature.properties?.sampleId)
-            if (id) toggle(String(id))
+            if (!id) return
+            if (selectionRef.current.selectionMode) {
+              toggle(String(id))
+            } else {
+              const url = `/samples/${id}`
+              window.history.pushState({}, '', url)
+              const navEvt = new PopStateEvent('popstate')
+              dispatchEvent(navEvt)
+            }
           })
           mapRef.current.on('mouseenter', 'samples-circle', () => {
             mapRef.current && (mapRef.current.getCanvas().style.cursor = 'pointer')
           })
           mapRef.current.on('mouseleave', 'samples-circle', () => {
             mapRef.current && (mapRef.current.getCanvas().style.cursor = '')
+            hideHover()
           })
           mapRef.current.on('mouseenter', 'samples-circle-selected', () => {
             mapRef.current && (mapRef.current.getCanvas().style.cursor = 'pointer')
           })
           mapRef.current.on('mouseleave', 'samples-circle-selected', () => {
             mapRef.current && (mapRef.current.getCanvas().style.cursor = '')
+            hideHover()
           })
+          mapRef.current.on('mousemove', 'samples-circle', showHover)
+          mapRef.current.on('mousemove', 'samples-circle-selected', showHover)
         }
 
         const { debouncedSearchText: dText, allowedAccess: access, createdByIdEquals: createdBy, exceedsLimit: limitNow, bboxMinLat: minLat, bboxMaxLat: maxLat, bboxMinLon: minLon, bboxMaxLon: maxLon } = paramsRef.current
