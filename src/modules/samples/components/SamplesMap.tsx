@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { getSamplesGeoFeatureCollection } from '../features/api'
+import { useSampleSelection } from '../features/selection'
 import { useSampleFilter } from '../features/sampleFilter'
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN as string
@@ -10,6 +11,7 @@ export default function SamplesMap({ totalCount }: { totalCount?: number }) {
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<mapboxgl.Map | null>(null)
   const { debouncedSearchText, allowedAccess, createdByIdEquals, setBbox, bboxMinLat, bboxMaxLat, bboxMinLon, bboxMaxLon } = useSampleFilter()
+  const { selectedIds, toggle } = useSampleSelection()
   const [isLoading, setIsLoading] = useState(false)
   const latestRequestIdRef = useRef(0)
   const EMPTY_GEOJSON = { type: 'FeatureCollection', features: [] } as const
@@ -67,15 +69,33 @@ export default function SamplesMap({ totalCount }: { totalCount?: number }) {
               'circle-stroke-color': '#ffffff',
             },
           })
+          // Selected samples layer (on top)
+          mapRef.current.addLayer({
+            id: 'samples-circle-selected',
+            type: 'circle',
+            source: 'samples',
+            paint: {
+              'circle-radius': 10,
+              'circle-color': '#ef4444',
+              'circle-stroke-width': 2,
+              'circle-stroke-color': '#ffffff',
+            },
+            filter: [
+              'in',
+              ['coalesce', ['get', 'id'], ['get', 'sampleId']],
+              ['literal', []],
+            ] as any,
+          })
           mapRef.current.on('click', 'samples-circle', (e) => {
             const feature = e.features && e.features[0]
             const id = feature && (feature.properties?.id || feature.properties?.sampleId)
-            if (id) {
-              const url = `/samples/${id}`
-              window.history.pushState({}, '', url)
-              const navEvt = new PopStateEvent('popstate')
-              dispatchEvent(navEvt)
-            }
+            if (id) toggle(String(id))
+          })
+          mapRef.current.on('mouseenter', 'samples-circle', () => {
+            mapRef.current && (mapRef.current.getCanvas().style.cursor = 'pointer')
+          })
+          mapRef.current.on('mouseleave', 'samples-circle', () => {
+            mapRef.current && (mapRef.current.getCanvas().style.cursor = '')
           })
         }
 
@@ -132,6 +152,21 @@ export default function SamplesMap({ totalCount }: { totalCount?: number }) {
       mapRef.current = null
     }
   }, [])
+
+  // Reflect selected IDs on the selected layer filter
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+    const layerId = 'samples-circle-selected'
+    if (!map.getLayer(layerId)) return
+    const ids = Array.from(selectedIds || [])
+    const filter: any = [
+      'in',
+      ['coalesce', ['get', 'id'], ['get', 'sampleId']],
+      ['literal', ids],
+    ]
+    map.setFilter(layerId, filter)
+  }, [selectedIds])
 
   // Change style when styleId updates
   useEffect(() => {
