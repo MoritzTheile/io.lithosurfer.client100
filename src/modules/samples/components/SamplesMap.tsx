@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { getSamplesGeoFeatureCollection } from '../features/api'
@@ -10,6 +10,20 @@ export default function SamplesMap() {
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<mapboxgl.Map | null>(null)
   const { debouncedSearchText, allowedAccess, createdByIdEquals } = useSampleFilter()
+  const [isLoading, setIsLoading] = useState(false)
+  const latestRequestIdRef = useRef(0)
+  const EMPTY_GEOJSON = { type: 'FeatureCollection', features: [] } as const
+
+  function finishLoadingWithMinDelay(startedAtMs: number, requestId: number) {
+    const MIN_VISIBLE_MS = 300
+    const elapsed = performance.now() - startedAtMs
+    const remaining = Math.max(0, MIN_VISIBLE_MS - elapsed)
+    window.setTimeout(() => {
+      if (requestId === latestRequestIdRef.current) {
+        setIsLoading(false)
+      }
+    }, remaining)
+  }
 
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return
@@ -25,16 +39,12 @@ export default function SamplesMap() {
 
     const onLoad = async () => {
       try {
-        const geojson = await getSamplesGeoFeatureCollection({
-          nameContains: debouncedSearchText || undefined,
-          allowedAccess: allowedAccess,
-          createdByIdEquals,
-        })
+        // Ensure the source/layer exist with empty data first
         if (!mapRef.current) return
         if (!mapRef.current.getSource('samples')) {
           mapRef.current.addSource('samples', {
             type: 'geojson',
-            data: geojson as any,
+            data: EMPTY_GEOJSON as any,
           })
           mapRef.current.addLayer({
             id: 'samples-circle',
@@ -57,10 +67,22 @@ export default function SamplesMap() {
               dispatchEvent(navEvt)
             }
           })
-        } else {
-          const source = mapRef.current.getSource('samples') as mapboxgl.GeoJSONSource
+        }
+
+        setIsLoading(true)
+        const requestId = ++latestRequestIdRef.current
+        const startedAt = performance.now()
+        const geojson = await getSamplesGeoFeatureCollection({
+          nameContains: debouncedSearchText || undefined,
+          allowedAccess: allowedAccess,
+          createdByIdEquals,
+        })
+        if (!mapRef.current) return
+        const source = mapRef.current.getSource('samples') as mapboxgl.GeoJSONSource
+        if (requestId === latestRequestIdRef.current) {
           source.setData(geojson as any)
         }
+        finishLoadingWithMinDelay(startedAt, requestId)
       } catch (e) {
         // eslint-disable-next-line no-console
         console.error('Failed to load GeoJSON', e)
@@ -82,15 +104,25 @@ export default function SamplesMap() {
     if (!mapRef.current) return
     ;(async () => {
       try {
+        setIsLoading(true)
+        const requestId = ++latestRequestIdRef.current
+        const startedAt = performance.now()
+        const map = mapRef.current
+        if (!map) return
+        const existingSource = map.getSource('samples') as mapboxgl.GeoJSONSource | undefined
+        // Clear outdated data while fetching
+        existingSource?.setData(EMPTY_GEOJSON as any)
         const geojson = await getSamplesGeoFeatureCollection({
           nameContains: debouncedSearchText || undefined,
           allowedAccess: allowedAccess,
           createdByIdEquals,
         })
-        const map = mapRef.current
-        if (!map) return
         const source = map.getSource('samples') as mapboxgl.GeoJSONSource | undefined
-        source?.setData(geojson as any)
+        // Only update if this is still the latest request
+        if (requestId === latestRequestIdRef.current) {
+          source?.setData(geojson as any)
+        }
+        finishLoadingWithMinDelay(startedAt, requestId)
       } catch (e) {
         // eslint-disable-next-line no-console
         console.error('Failed to refresh GeoJSON', e)
@@ -98,7 +130,16 @@ export default function SamplesMap() {
     })()
   }, [debouncedSearchText, allowedAccess, createdByIdEquals])
 
-  return <div ref={mapContainerRef} className="w-full h-[70vh] rounded-lg border" />
+  return (
+    <div className="relative w-full h-[70vh]">
+      <div ref={mapContainerRef} className="w-full h-full rounded-lg border" />
+      {isLoading && (
+        <div className="absolute inset-0 z-10 rounded-lg bg-white/60 backdrop-blur-sm flex items-center justify-center" aria-busy="true" aria-live="polite">
+          <span className="inline-block h-10 w-10 animate-spin rounded-full border-4 border-gray-400/30 border-t-gray-600" />
+        </div>
+      )}
+    </div>
+  )
 }
 
 
