@@ -20,15 +20,20 @@ export default function SamplesMap({ totalCount, isVisible }: { totalCount?: num
   const [styleId, setStyleId] = useState<'streets-v12' | 'outdoors-v12' | 'satellite-streets-v12' | 'light-v11' | 'dark-v11'>('satellite-streets-v12')
   const lastAppliedStyleIdRef = useRef<string>('satellite-streets-v12')
   const [box, setBox] = useState<{ x0: number; y0: number; x1: number; y1: number } | null>(null)
-  const [isShiftDown, setIsShiftDown] = useState(false)
-  const [isCtrlDown, setIsCtrlDown] = useState(false)
-  const [showShiftHint, setShowShiftHint] = useState(true)
+  const [selectionMode, setSelectionMode] = useState(false)
+  const [selectionAction, setSelectionAction] = useState<'select' | 'unselect'>('select')
+  const selectionRef = useRef({ selectionMode, selectionAction })
 
   // Keep latest params in refs for event handlers
   const paramsRef = useRef({ debouncedSearchText, allowedAccess, createdByIdEquals, exceedsLimit, bboxMinLat, bboxMaxLat, bboxMinLon, bboxMaxLon })
   useEffect(() => {
     paramsRef.current = { debouncedSearchText, allowedAccess, createdByIdEquals, exceedsLimit, bboxMinLat, bboxMaxLat, bboxMinLon, bboxMaxLon }
   }, [debouncedSearchText, allowedAccess, createdByIdEquals, exceedsLimit, bboxMinLat, bboxMaxLat, bboxMinLon, bboxMaxLon])
+
+  // Keep latest selection mode/action in a ref for map event handlers
+  useEffect(() => {
+    selectionRef.current = { selectionMode, selectionAction }
+  }, [selectionMode, selectionAction])
 
   function finishLoadingWithMinDelay(startedAtMs: number, requestId: number) {
     const MIN_VISIBLE_MS = 300
@@ -173,15 +178,13 @@ export default function SamplesMap({ totalCount, isVisible }: { totalCount?: num
       setBbox(minLon, minLat, maxLon, maxLat)
     })
 
-    // Shift + drag rubber-band selection
-    const onMouseDown = (e: mapboxgl.MapMouseEvent) => {
-      const ev = e.originalEvent as MouseEvent
-      if (!ev.shiftKey) return
+    // Selection rubber band (mouse/touch) when selectionMode is active
+    const onPointerDown = (e: any) => {
+      if (!selectionRef.current.selectionMode) return
       if (!mapRef.current) return
-      // Prevent default Mapbox box-zoom behavior and panning during selection
       const map = mapRef.current
-      ev.preventDefault()
-      const isUnselectMode = !!(ev.ctrlKey || (ev as any).metaKey)
+      const oe = (e as any).originalEvent
+      if (oe && typeof oe.preventDefault === 'function') oe.preventDefault()
       const boxZoomWasEnabled = (map as any).boxZoom && (map as any).boxZoom.isEnabled && (map as any).boxZoom.isEnabled()
       const dragRotateWasEnabled = map.dragRotate && (map.dragRotate as any).isEnabled && (map.dragRotate as any).isEnabled()
       if (map.boxZoom && map.boxZoom.disable) map.boxZoom.disable()
@@ -190,11 +193,11 @@ export default function SamplesMap({ totalCount, isVisible }: { totalCount?: num
       const start = e.point
       setBox({ x0: start.x, y0: start.y, x1: start.x, y1: start.y })
 
-      const onMouseMove = (me: mapboxgl.MapMouseEvent) => {
+      const onPointerMove = (me: any) => {
         const p = me.point
         setBox((b) => (b ? { ...b, x1: p.x, y1: p.y } : b))
       }
-      const onMouseUp = (ue: mapboxgl.MapMouseEvent) => {
+      const onPointerUp = (ue: any) => {
         if (!mapRef.current) return
         const layers = ['samples-circle-selected', 'samples-circle']
         const xMin = Math.min(start.x, ue.point.x)
@@ -207,77 +210,49 @@ export default function SamplesMap({ totalCount, isVisible }: { totalCount?: num
           .filter((v) => v !== undefined)
           .map((v) => String(v as any))
         if (ids.length > 0) {
-          if (isUnselectMode) deselectMany(ids)
+          if (selectionRef.current.selectionAction === 'unselect') deselectMany(ids)
           else selectMany(ids)
         }
         setBox(null)
-        mapRef.current.off('mousemove', onMouseMove)
-        mapRef.current.off('mouseup', onMouseUp)
-        // Restore interactions
+        mapRef.current.off('mousemove', onPointerMove)
+        mapRef.current.off('mouseup', onPointerUp)
+        mapRef.current.off('touchmove', onPointerMove)
+        mapRef.current.off('touchend', onPointerUp)
         if (boxZoomWasEnabled && map.boxZoom && map.boxZoom.enable) map.boxZoom.enable()
         map.dragPan.enable()
         if (dragRotateWasEnabled && map.dragRotate && map.dragRotate.enable) map.dragRotate.enable()
       }
-      mapRef.current.on('mousemove', onMouseMove)
-      mapRef.current.on('mouseup', onMouseUp)
+      mapRef.current.on('mousemove', onPointerMove)
+      mapRef.current.on('mouseup', onPointerUp)
+      mapRef.current.on('touchmove', onPointerMove)
+      mapRef.current.on('touchend', onPointerUp)
     }
-    mapRef.current.on('mousedown', onMouseDown)
+    mapRef.current.on('mousedown', onPointerDown)
+    mapRef.current.on('touchstart', onPointerDown)
 
     return () => {
       if (mapRef.current) {
         mapRef.current.off('load', onLoad)
         mapRef.current.off('style.load', onLoad)
-        mapRef.current.off('mousedown', onMouseDown)
+        mapRef.current.off('mousedown', onPointerDown)
+        mapRef.current.off('touchstart', onPointerDown)
         mapRef.current.remove()
       }
       mapRef.current = null
     }
   }, [])
 
-  // Update cursor when shift/control is pressed/released and toggle rotate only for Shift+Ctrl combination
+  // While selection mode is active, set crosshair cursor and disable rotate to avoid conflicts
   useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Shift') {
-        setIsShiftDown(true)
-        setShowShiftHint(false)
-        if (mapRef.current) mapRef.current.getCanvas().style.cursor = 'crosshair'
-      }
-      if (e.key === 'Control') {
-        setIsCtrlDown(true)
-        // Do not disable rotate on Ctrl alone
-      }
-      if ((e.key === 'Control' || e.key === 'Shift') && mapRef.current) {
-        const nextShift = e.key === 'Shift' ? true : isShiftDown
-        const nextCtrl = e.key === 'Control' ? true : isCtrlDown
-        const both = nextShift && nextCtrl
-        if (both) mapRef.current.dragRotate.disable()
-        else mapRef.current.dragRotate.enable()
-      }
+    const map = mapRef.current
+    if (!map) return
+    map.getCanvas().style.cursor = selectionMode ? 'crosshair' : ''
+    if (selectionMode) {
+      map.dragRotate.disable()
+    } else {
+      map.dragRotate.enable()
     }
-    const onKeyUp = (e: KeyboardEvent) => {
-      if (e.key === 'Shift') {
-        setIsShiftDown(false)
-        if (mapRef.current) mapRef.current.getCanvas().style.cursor = ''
-      }
-      if (e.key === 'Control') {
-        setIsCtrlDown(false)
-      }
-      if ((e.key === 'Control' || e.key === 'Shift') && mapRef.current) {
-        const nextShift = e.key === 'Shift' ? false : isShiftDown
-        const nextCtrl = e.key === 'Control' ? false : isCtrlDown
-        const both = nextShift && nextCtrl
-        if (both) mapRef.current.dragRotate.disable()
-        else mapRef.current.dragRotate.enable()
-      }
-    }
-    window.addEventListener('keydown', onKeyDown)
-    window.addEventListener('keyup', onKeyUp)
-    return () => {
-      window.removeEventListener('keydown', onKeyDown)
-      window.removeEventListener('keyup', onKeyUp)
-      if (mapRef.current) mapRef.current.getCanvas().style.cursor = ''
-    }
-  }, [])
+  }, [selectionMode])
 
   // Reflect selected IDs on the selected layer filter
   useEffect(() => {
@@ -360,20 +335,35 @@ export default function SamplesMap({ totalCount, isVisible }: { totalCount?: num
   return (
     <div className="relative w-full h-[70vh]">
       <div ref={mapContainerRef} className="w-full h-full rounded-lg border" />
-      {showShiftHint && !isShiftDown && !box && (
-        <div className="absolute left-1/2 top-2 z-20 -translate-x-1/2">
-          <div className="flex items-center gap-2 rounded bg-white/90 backdrop-blur px-2 py-1 text-xs text-gray-700 shadow border">
-            <span className="rounded border px-1 py-0.5 bg-gray-100">Shift</span>
-            <span>+ drag to select</span>
-            <span className="text-gray-400">|</span>
-            <span className="rounded border px-1 py-0.5 bg-gray-100">Shift</span>
-            <span>+</span>
-            <span className="rounded border px-1 py-0.5 bg-gray-100">Ctrl</span>
-            <span>to unselect</span>
-            <button type="button" className="ml-1 text-gray-500 hover:text-gray-700" onClick={() => setShowShiftHint(false)} aria-label="Dismiss selection hint">×</button>
-          </div>
-        </div>
-      )}
+      {/* Selection controls (mobile-friendly) */}
+      <div className="absolute left-2 top-12 z-20 flex items-center gap-1 rounded bg-white/90 backdrop-blur px-2 py-1 text-xs text-gray-700 shadow border">
+        <label className="flex items-center gap-1">
+          <input type="checkbox" className="accent-emerald-600" checked={selectionMode} onChange={(e) => setSelectionMode(e.target.checked)} />
+          <span>Selection</span>
+        </label>
+        {selectionMode && (
+          <>
+            <div className="ml-1 inline-flex rounded border overflow-hidden">
+              <button type="button" className={`px-2 py-0.5 ${selectionAction === 'select' ? 'bg-emerald-600 text-white' : 'bg-white'}`} onClick={() => setSelectionAction('select')}>Add</button>
+              <button type="button" className={`px-2 py-0.5 ${selectionAction === 'unselect' ? 'bg-rose-600 text-white' : 'bg-white'}`} onClick={() => setSelectionAction('unselect')}>Remove</button>
+            </div>
+            <button type="button" className="ml-1 rounded border px-2 py-0.5 bg-white hover:bg-gray-50" onClick={() => {
+              const map = mapRef.current
+              if (!map) return
+              const features = map.queryRenderedFeatures({ layers: ['samples-circle', 'samples-circle-selected'] }) as any
+              const ids: string[] = Array.from(new Set((features as any[])
+                .map((f: any) => f?.properties?.id ?? f?.properties?.sampleId)
+                .filter((v: any): v is string | number => v !== undefined && v !== null)
+                .map((v: any) => String(v))))
+              if (ids.length > 0) {
+                if (selectionAction === 'unselect') deselectMany(ids)
+                else selectMany(ids)
+              }
+            }}>All in view</button>
+            <button type="button" className="ml-1 rounded border px-2 py-0.5 bg-white hover:bg-gray-50" onClick={() => setSelectionMode(false)}>Done</button>
+          </>
+        )}
+      </div>
       {box && (
         <div
           className="absolute z-30 border-2 border-emerald-500 bg-emerald-400/10"
