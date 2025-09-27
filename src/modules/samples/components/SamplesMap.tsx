@@ -20,6 +20,7 @@ export default function SamplesMap({ totalCount, isVisible }: { totalCount?: num
   const [styleId, setStyleId] = useState<'streets-v12' | 'outdoors-v12' | 'satellite-streets-v12' | 'light-v11' | 'dark-v11'>('satellite-streets-v12')
   const lastAppliedStyleIdRef = useRef<string>('satellite-streets-v12')
   const [box, setBox] = useState<{ x0: number; y0: number; x1: number; y1: number } | null>(null)
+  const [isShiftDown, setIsShiftDown] = useState(false)
 
   // Keep latest params in refs for event handlers
   const paramsRef = useRef({ debouncedSearchText, allowedAccess, createdByIdEquals, exceedsLimit, bboxMinLat, bboxMaxLat, bboxMinLon, bboxMaxLon })
@@ -221,6 +222,29 @@ export default function SamplesMap({ totalCount, isVisible }: { totalCount?: num
         mapRef.current.remove()
       }
       mapRef.current = null
+    }
+  }, [])
+
+  // Update cursor when shift is pressed/released
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Shift') {
+        setIsShiftDown(true)
+        if (mapRef.current) mapRef.current.getCanvas().style.cursor = 'crosshair'
+      }
+    }
+    const onKeyUp = (e: KeyboardEvent) => {
+      if (e.key === 'Shift') {
+        setIsShiftDown(false)
+        if (mapRef.current) mapRef.current.getCanvas().style.cursor = ''
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    window.addEventListener('keyup', onKeyUp)
+    return () => {
+      window.removeEventListener('keydown', onKeyDown)
+      window.removeEventListener('keyup', onKeyUp)
+      if (mapRef.current) mapRef.current.getCanvas().style.cursor = ''
     }
   }, [])
 
