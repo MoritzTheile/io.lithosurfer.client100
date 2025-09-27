@@ -11,7 +11,7 @@ export default function SamplesMap({ totalCount, isVisible }: { totalCount?: num
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<mapboxgl.Map | null>(null)
   const { debouncedSearchText, allowedAccess, createdByIdEquals, setBbox, bboxMinLat, bboxMaxLat, bboxMinLon, bboxMaxLon } = useSampleFilter()
-  const { selectedIds, toggle } = useSampleSelection()
+  const { selectedIds, toggle, selectMany } = useSampleSelection()
   const [isLoading, setIsLoading] = useState(false)
   const latestRequestIdRef = useRef(0)
   const EMPTY_GEOJSON = { type: 'FeatureCollection', features: [] } as const
@@ -19,6 +19,7 @@ export default function SamplesMap({ totalCount, isVisible }: { totalCount?: num
   const exceedsLimit = (totalCount ?? 0) > MAX_FEATURES_FOR_MAP
   const [styleId, setStyleId] = useState<'streets-v12' | 'outdoors-v12' | 'satellite-streets-v12' | 'light-v11' | 'dark-v11'>('satellite-streets-v12')
   const lastAppliedStyleIdRef = useRef<string>('satellite-streets-v12')
+  const [box, setBox] = useState<{ x0: number; y0: number; x1: number; y1: number } | null>(null)
 
   // Keep latest params in refs for event handlers
   const paramsRef = useRef({ debouncedSearchText, allowedAccess, createdByIdEquals, exceedsLimit, bboxMinLat, bboxMaxLat, bboxMinLon, bboxMaxLon })
@@ -169,10 +170,54 @@ export default function SamplesMap({ totalCount, isVisible }: { totalCount?: num
       setBbox(minLon, minLat, maxLon, maxLat)
     })
 
+    // Shift + drag rubber-band selection
+    const onMouseDown = (e: mapboxgl.MapMouseEvent) => {
+      const ev = e.originalEvent as MouseEvent
+      if (!ev.shiftKey) return
+      if (!mapRef.current) return
+      // Prevent default Mapbox box-zoom behavior and panning during selection
+      const map = mapRef.current
+      ev.preventDefault()
+      const boxZoomWasEnabled = (map as any).boxZoom && (map as any).boxZoom.isEnabled && (map as any).boxZoom.isEnabled()
+      if (map.boxZoom && map.boxZoom.disable) map.boxZoom.disable()
+      map.dragPan.disable()
+      const start = e.point
+      setBox({ x0: start.x, y0: start.y, x1: start.x, y1: start.y })
+
+      const onMouseMove = (me: mapboxgl.MapMouseEvent) => {
+        const p = me.point
+        setBox((b) => (b ? { ...b, x1: p.x, y1: p.y } : b))
+      }
+      const onMouseUp = (ue: mapboxgl.MapMouseEvent) => {
+        if (!mapRef.current) return
+        const layers = ['samples-circle-selected', 'samples-circle']
+        const xMin = Math.min(start.x, ue.point.x)
+        const yMin = Math.min(start.y, ue.point.y)
+        const xMax = Math.max(start.x, ue.point.x)
+        const yMax = Math.max(start.y, ue.point.y)
+        const features = mapRef.current.queryRenderedFeatures([ { x: xMin, y: yMin } as any, { x: xMax, y: yMax } as any ], { layers })
+        const ids = features
+          .map((f) => (f.properties?.id ?? f.properties?.sampleId))
+          .filter((v) => v !== undefined)
+          .map((v) => String(v as any))
+        if (ids.length > 0) selectMany(ids)
+        setBox(null)
+        mapRef.current.off('mousemove', onMouseMove)
+        mapRef.current.off('mouseup', onMouseUp)
+        // Restore interactions
+        if (boxZoomWasEnabled && map.boxZoom && map.boxZoom.enable) map.boxZoom.enable()
+        map.dragPan.enable()
+      }
+      mapRef.current.on('mousemove', onMouseMove)
+      mapRef.current.on('mouseup', onMouseUp)
+    }
+    mapRef.current.on('mousedown', onMouseDown)
+
     return () => {
       if (mapRef.current) {
         mapRef.current.off('load', onLoad)
         mapRef.current.off('style.load', onLoad)
+        mapRef.current.off('mousedown', onMouseDown)
         mapRef.current.remove()
       }
       mapRef.current = null
@@ -260,6 +305,18 @@ export default function SamplesMap({ totalCount, isVisible }: { totalCount?: num
   return (
     <div className="relative w-full h-[70vh]">
       <div ref={mapContainerRef} className="w-full h-full rounded-lg border" />
+      {box && (
+        <div
+          className="absolute z-30 border-2 border-emerald-500 bg-emerald-400/10"
+          style={{
+            left: `${Math.min(box.x0, box.x1)}px`,
+            top: `${Math.min(box.y0, box.y1)}px`,
+            width: `${Math.abs(box.x1 - box.x0)}px`,
+            height: `${Math.abs(box.y1 - box.y0)}px`,
+            pointerEvents: 'none',
+          }}
+        />
+      )}
       {/* Basemap style switcher (compact select) */}
       <div className="absolute left-2 top-2 z-20">
         <label htmlFor="basemap-style" className="sr-only">Basemap style</label>
