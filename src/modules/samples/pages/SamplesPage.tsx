@@ -53,11 +53,12 @@ export default function Samples() {
         </div>
       </div>
       <SelectionBar />
-      {mode === 'map' ? (
-        <SamplesMap totalCount={totalCount} />
-      ) : (
+      <div className={mode === 'map' ? '' : 'hidden'}>
+        <SamplesMap totalCount={totalCount} isVisible={mode === 'map'} />
+      </div>
+      <div className={mode === 'table' ? '' : 'hidden'}>
         <SamplesList />
-      )}
+      </div>
     </div>
   )
 }

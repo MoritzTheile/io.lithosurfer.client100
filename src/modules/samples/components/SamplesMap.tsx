@@ -7,7 +7,7 @@ import { useSampleFilter } from '../features/sampleFilter'
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN as string
 
-export default function SamplesMap({ totalCount }: { totalCount?: number }) {
+export default function SamplesMap({ totalCount, isVisible }: { totalCount?: number, isVisible?: boolean }) {
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<mapboxgl.Map | null>(null)
   const { debouncedSearchText, allowedAccess, createdByIdEquals, setBbox, bboxMinLat, bboxMaxLat, bboxMinLon, bboxMaxLon } = useSampleFilter()
@@ -86,8 +86,12 @@ export default function SamplesMap({ totalCount }: { totalCount?: number }) {
               ['literal', []],
             ] as any,
           })
-          mapRef.current.on('click', 'samples-circle', (e) => {
-            const feature = e.features && e.features[0]
+          mapRef.current.on('click', (e) => {
+            if (!mapRef.current) return
+            const features = mapRef.current.queryRenderedFeatures(e.point, {
+              layers: ['samples-circle-selected', 'samples-circle'],
+            })
+            const feature = features && features[0]
             const id = feature && (feature.properties?.id || feature.properties?.sampleId)
             if (id) toggle(String(id))
           })
@@ -95,6 +99,12 @@ export default function SamplesMap({ totalCount }: { totalCount?: number }) {
             mapRef.current && (mapRef.current.getCanvas().style.cursor = 'pointer')
           })
           mapRef.current.on('mouseleave', 'samples-circle', () => {
+            mapRef.current && (mapRef.current.getCanvas().style.cursor = '')
+          })
+          mapRef.current.on('mouseenter', 'samples-circle-selected', () => {
+            mapRef.current && (mapRef.current.getCanvas().style.cursor = 'pointer')
+          })
+          mapRef.current.on('mouseleave', 'samples-circle-selected', () => {
             mapRef.current && (mapRef.current.getCanvas().style.cursor = '')
           })
         }
@@ -159,10 +169,10 @@ export default function SamplesMap({ totalCount }: { totalCount?: number }) {
     if (!map) return
     const layerId = 'samples-circle-selected'
     if (!map.getLayer(layerId)) return
-    const ids = Array.from(selectedIds || [])
+    const ids = Array.from(selectedIds || []).map(String)
     const filter: any = [
       'in',
-      ['coalesce', ['get', 'id'], ['get', 'sampleId']],
+      ['to-string', ['coalesce', ['get', 'id'], ['get', 'sampleId']]],
       ['literal', ids],
     ]
     map.setFilter(layerId, filter)
@@ -177,6 +187,15 @@ export default function SamplesMap({ totalCount }: { totalCount?: number }) {
     lastAppliedStyleIdRef.current = styleId
     map.setStyle(desired)
   }, [styleId])
+
+  // Resize map when becoming visible to prevent rendering issues when hidden
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+    if (isVisible) {
+      map.resize()
+    }
+  }, [isVisible])
 
   useEffect(() => {
     if (!mapRef.current) return
