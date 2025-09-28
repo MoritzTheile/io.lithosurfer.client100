@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react'
 import { MapIcon, TableIcon } from '../../../lib/icons'
 import { useSamplesQuery } from '../features/useSamplesQuery'
 import { getSampleWithLocationById } from '../features/api'
+import LargeModal from '../../shared/LargeModal'
 
 export default function Samples() {
 
@@ -74,27 +75,20 @@ export default function Samples() {
       <div className={mode === 'table' ? '' : 'hidden'}>
         <SamplesList />
       </div>
-      {detailId && (
-        <div className="fixed inset-0 z-50">
-          <div className="absolute inset-0 bg-black/40" onClick={() => { setDetailId(null); setDetailData(null) }} />
-          <div className="absolute inset-0 z-10 bg-white overflow-auto">
-            <div className="sticky top-0 flex items-center justify-between border-b px-4 py-3 bg-white">
-              <h2 className="text-lg font-semibold">Sample {detailId}</h2>
-              <div className="flex items-center gap-2">
-                {detailLoading && <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-gray-400/30 border-t-gray-600" />}
-                <button className="rounded-md border px-3 py-1 text-sm bg-white hover:bg-gray-50" onClick={() => { setDetailId(null); setDetailData(null) }}>Close</button>
-              </div>
-            </div>
-            <div className="p-4">
-              {detailData ? (
-                <pre className="text-xs whitespace-pre-wrap break-words">{JSON.stringify(detailData, null, 2)}</pre>
-              ) : (
-                <div className="text-sm text-gray-600">{detailLoading ? 'Loading…' : 'No details found.'}</div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      <LargeModal
+        isOpen={!!detailId}
+        onClose={() => { setDetailId(null); setDetailData(null) }}
+        title={<span>Sample {detailId}</span>}
+        rightActions={detailLoading ? (
+          <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-gray-400/30 border-t-gray-600" />
+        ) : null}
+      >
+        {detailData ? (
+          <pre className="text-xs whitespace-pre-wrap break-words">{JSON.stringify(detailData, null, 2)}</pre>
+        ) : (
+          <div className="text-sm text-gray-600">{detailLoading ? 'Loading…' : 'No details found.'}</div>
+        )}
+      </LargeModal>
     </div>
   )
 }
