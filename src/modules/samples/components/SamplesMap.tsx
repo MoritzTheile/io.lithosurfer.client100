@@ -439,8 +439,8 @@ export default function SamplesMap({ isVisible, onOpenDetail }: { isVisible?: bo
           }}
         />
       )}
-      {/* Basemap style switcher (compact select) */}
-      <div className="absolute left-2 top-2 z-20 flex items-center gap-1">
+      {/* Controls group (top-right): style, projection, fullscreen */}
+      <div className="absolute right-2 top-2 z-20 flex items-center gap-1">
         <label htmlFor="basemap-style" className="sr-only">Basemap style</label>
         <select
           id="basemap-style"
@@ -467,12 +467,9 @@ export default function SamplesMap({ isVisible, onOpenDetail }: { isVisible?: bo
           <option value="equirectangular">Equirectangular</option>
           <option value="naturalEarth">Natural Earth</option>
         </select>
-      </div>
-      {/* Fullscreen toggle */}
-      <div className="absolute right-2 top-2 z-20">
         <button
           type="button"
-          className="inline-flex items-center gap-1 rounded border bg-white/90 backdrop-blur px-2 py-1 text-xs shadow hover:bg-white"
+          className="text-[10px] rounded-sm border bg-white/90 backdrop-blur px-1 py-0.5 shadow hover:bg-white inline-flex items-center gap-1"
           onClick={() => {
             const root = document.getElementById('samples-map-root')
             if (!root) return
@@ -482,13 +479,12 @@ export default function SamplesMap({ isVisible, onOpenDetail }: { isVisible?: bo
             } else {
               doc.exitFullscreen?.()
             }
-            // Resize after enter/exit fullscreen to reflow map
             setTimeout(() => mapRef.current?.resize(), 200)
           }}
           title="Toggle fullscreen"
         >
-          <FullscreenIcon className="h-4 w-4" />
-          <span className="hidden sm:inline">Fullscreen</span>
+          <FullscreenIcon className="h-3 w-3" />
+          <span className="hidden sm:inline">Full</span>
         </button>
       </div>
       {internalCount !== null && internalCount > MAX_FEATURES_FOR_MAP && (
