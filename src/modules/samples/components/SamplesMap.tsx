@@ -168,17 +168,25 @@ export default function SamplesMap({ isVisible, onOpenDetail }: { isVisible?: bo
             }
           })
           mapRef.current.on('mouseenter', 'samples-circle', () => {
-            mapRef.current && (mapRef.current.getCanvas().style.cursor = 'pointer')
+            if (!mapRef.current) return
+            const cur = selectionRef.current.selectionMode ? 'crosshair' : 'pointer'
+            mapRef.current.getCanvas().style.cursor = cur
           })
           mapRef.current.on('mouseleave', 'samples-circle', () => {
-            mapRef.current && (mapRef.current.getCanvas().style.cursor = '')
+            if (!mapRef.current) return
+            const cur = selectionRef.current.selectionMode ? 'crosshair' : ''
+            mapRef.current.getCanvas().style.cursor = cur
             hideHover()
           })
           mapRef.current.on('mouseenter', 'samples-circle-selected', () => {
-            mapRef.current && (mapRef.current.getCanvas().style.cursor = 'pointer')
+            if (!mapRef.current) return
+            const cur = selectionRef.current.selectionMode ? 'crosshair' : 'pointer'
+            mapRef.current.getCanvas().style.cursor = cur
           })
           mapRef.current.on('mouseleave', 'samples-circle-selected', () => {
-            mapRef.current && (mapRef.current.getCanvas().style.cursor = '')
+            if (!mapRef.current) return
+            const cur = selectionRef.current.selectionMode ? 'crosshair' : ''
+            mapRef.current.getCanvas().style.cursor = cur
             hideHover()
           })
           mapRef.current.on('mousemove', 'samples-circle', showHover)
