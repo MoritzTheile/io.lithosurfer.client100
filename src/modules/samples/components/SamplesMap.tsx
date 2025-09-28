@@ -137,6 +137,12 @@ export default function SamplesMap({ isVisible, onOpenDetail }: { isVisible?: bo
             const name = feature?.properties?.name ?? feature?.properties?.sampleName ?? ''
             if (!hoverPopupRef.current) {
               hoverPopupRef.current = new mapboxgl.Popup({ closeButton: false, closeOnClick: false })
+              try {
+                const el = hoverPopupRef.current.getElement()
+                if (el) {
+                  el.style.pointerEvents = 'none'
+                }
+              } catch {}
             }
             const safeName = typeof name === 'string' ? escapeHtml(name) : String(name ?? '')
             const safeId = escapeHtml(String(id ?? ''))
@@ -148,25 +154,7 @@ export default function SamplesMap({ isVisible, onOpenDetail }: { isVisible?: bo
           const hideHover = () => {
             if (hoverPopupRef.current) hoverPopupRef.current.remove()
           }
-          mapRef.current.on('click', (e) => {
-            if (!mapRef.current) return
-            const features = mapRef.current.queryRenderedFeatures(e.point, {
-              layers: ['samples-circle-selected', 'samples-circle'],
-            })
-            const feature = features && features[0]
-            const id = feature && (feature.properties?.id || feature.properties?.sampleId)
-            if (!id) return
-            if (selectionRef.current.selectionMode) {
-              toggle(String(id))
-            } else if (onOpenDetail) {
-              onOpenDetail(String(id))
-            } else {
-              const url = `/samples/${id}`
-              window.history.pushState({}, '', url)
-              const navEvt = new PopStateEvent('popstate')
-              dispatchEvent(navEvt)
-            }
-          })
+          // Avoid native click conflicts with our rubber-band logic; rely on pointer handlers instead
           mapRef.current.on('mouseenter', 'samples-circle', () => {
             if (!mapRef.current) return
             const cur = selectionRef.current.selectionMode ? 'crosshair' : 'pointer'
@@ -222,6 +210,13 @@ export default function SamplesMap({ isVisible, onOpenDetail }: { isVisible?: bo
 
     // Selection rubber band (mouse/touch) when selectionMode is active
     const onPointerDown = (e: any) => {
+      /*
+      I removed the native map click handler (which could conflict with our rubber-band flow) and moved all selection toggling into the unified pointer handlers:
+      On mousedown: we wait for small movement; if none, treat as a click on mouseup; if movement, do box selection.
+      On mouseup: we perform a click toggle for the feature under the cursor if it was a click-like gesture; otherwise, apply the rectangle selection. Threshold is 3px to avoid accidental drags.
+      Kept popup pointer-events disabled so it can't block clicks.
+      This should make every click reliably toggle selection while in selection mode.
+      */
       if (!selectionRef.current.selectionMode) return
       if (!mapRef.current) return
       const map = mapRef.current
@@ -233,27 +228,46 @@ export default function SamplesMap({ isVisible, onOpenDetail }: { isVisible?: bo
       map.dragPan.disable()
       if (map.dragRotate && map.dragRotate.disable) map.dragRotate.disable()
       const start = e.point
-      setBox({ x0: start.x, y0: start.y, x1: start.x, y1: start.y })
+      let isDragging = false
+      setBox(null)
 
       const onPointerMove = (me: any) => {
         const p = me.point
-        setBox((b) => (b ? { ...b, x1: p.x, y1: p.y } : b))
+        const dx = Math.abs(p.x - start.x)
+        const dy = Math.abs(p.y - start.y)
+        if (!isDragging && (dx > 3 || dy > 3)) {
+          isDragging = true
+          setBox({ x0: start.x, y0: start.y, x1: p.x, y1: p.y })
+        } else if (isDragging) {
+          setBox((b) => (b ? { ...b, x1: p.x, y1: p.y } : b))
+        }
       }
       const onPointerUp = (ue: any) => {
         if (!mapRef.current) return
         const layers = ['samples-circle-selected', 'samples-circle']
-        const xMin = Math.min(start.x, ue.point.x)
-        const yMin = Math.min(start.y, ue.point.y)
-        const xMax = Math.max(start.x, ue.point.x)
-        const yMax = Math.max(start.y, ue.point.y)
-        const features = mapRef.current.queryRenderedFeatures([ { x: xMin, y: yMin } as any, { x: xMax, y: yMax } as any ], { layers })
-        const ids = features
-          .map((f) => (f.properties?.id ?? f.properties?.sampleId))
-          .filter((v) => v !== undefined)
-          .map((v) => String(v as any))
-        if (ids.length > 0) {
-          if (selectionRef.current.selectionAction === 'unselect') deselectMany(ids)
-          else selectMany(ids)
+        const clickLike = !isDragging || (Math.abs(ue.point.x - start.x) <= 3 && Math.abs(ue.point.y - start.y) <= 3)
+        if (clickLike) {
+          // Treat as click-toggle in selection mode
+          const features = mapRef.current.queryRenderedFeatures(ue.point, { layers })
+          const feature = features && features[0]
+          const id = feature && (feature.properties?.id || feature.properties?.sampleId)
+          if (id) {
+            toggle(String(id))
+          }
+        } else {
+          const xMin = Math.min(start.x, ue.point.x)
+          const yMin = Math.min(start.y, ue.point.y)
+          const xMax = Math.max(start.x, ue.point.x)
+          const yMax = Math.max(start.y, ue.point.y)
+          const features = mapRef.current.queryRenderedFeatures([ { x: xMin, y: yMin } as any, { x: xMax, y: yMax } as any ], { layers })
+          const ids = features
+            .map((f) => (f.properties?.id ?? f.properties?.sampleId))
+            .filter((v) => v !== undefined)
+            .map((v) => String(v as any))
+          if (ids.length > 0) {
+            if (selectionRef.current.selectionAction === 'unselect') deselectMany(ids)
+            else selectMany(ids)
+          }
         }
         setBox(null)
         mapRef.current.off('mousemove', onPointerMove)
