@@ -11,7 +11,7 @@ export default function SelectionBar() {
   return (
     <div className="rounded-md border bg-gradient-to-r from-emerald-50 via-teal-50 to-cyan-50 px-3 py-2 text-sm flex items-center justify-between">
       <div className="flex items-center gap-2">
-        <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-emerald-600 text-white text-xs">
+        <span className="inline-flex h-5 px-2 items-center justify-center rounded-full bg-emerald-600 text-white text-xs tabular-nums">
           {count}
         </span>
         <span className="text-emerald-800">selected</span>
