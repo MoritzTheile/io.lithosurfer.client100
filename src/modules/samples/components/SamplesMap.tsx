@@ -399,7 +399,7 @@ export default function SamplesMap({ isVisible, onOpenDetail }: { isVisible?: bo
     <div className={`relative w-full h-[70vh]`} id="samples-map-root">
       <div ref={mapContainerRef} className="w-full h-full rounded-lg border" />
       {/* Selection controls (mobile-friendly) */}
-      <div className="absolute left-2 top-[90px] z-20 flex items-center gap-1 rounded bg-white/90 backdrop-blur px-2 py-1 text-xs text-gray-700 shadow border">
+      <div className="absolute left-2 top-2 z-20 flex items-center gap-1 rounded bg-white/90 backdrop-blur px-2 py-1 text-xs text-gray-700 shadow border">
         <label className="flex items-center gap-1">
           <input type="checkbox" className="accent-emerald-600" checked={selectionMode} onChange={(e) => setSelectionMode(e.target.checked)} />
           <span>Selection</span>
