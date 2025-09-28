@@ -20,6 +20,7 @@ export default function SamplesMap({ isVisible, onOpenDetail }: { isVisible?: bo
   const [internalCount, setInternalCount] = useState<number | null>(null)
   const [styleId, setStyleId] = useState<'streets-v12' | 'outdoors-v12' | 'satellite-streets-v12' | 'light-v11' | 'dark-v11'>('satellite-streets-v12')
   const lastAppliedStyleIdRef = useRef<string>('satellite-streets-v12')
+  const [projectionId, setProjectionId] = useState<'mercator' | 'equirectangular' | 'naturalEarth'>('mercator')
   const [box, setBox] = useState<{ x0: number; y0: number; x1: number; y1: number } | null>(null)
   const [selectionMode, setSelectionMode] = useState(false)
   const [selectionAction, setSelectionAction] = useState<'select' | 'unselect'>('select')
@@ -194,6 +195,11 @@ export default function SamplesMap({ isVisible, onOpenDetail }: { isVisible?: bo
     mapRef.current.on('load', onLoad)
     mapRef.current.on('style.load', onLoad)
     mapRef.current.on('style.load', repositionMapboxControls)
+    mapRef.current.on('style.load', () => {
+      if (mapRef.current) {
+        try { mapRef.current.setProjection(projectionId as any) } catch {}
+      }
+    })
     mapRef.current.on('moveend', () => {
       const map = mapRef.current
       if (!map) return
@@ -308,6 +314,17 @@ export default function SamplesMap({ isVisible, onOpenDetail }: { isVisible?: bo
     map.setStyle(desired)
   }, [styleId])
 
+  // Apply projection when changed
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+    try {
+      map.setProjection(projectionId as any)
+    } catch {
+      // ignore unsupported projections for the current style/version
+    }
+  }, [projectionId])
+
   // Resize map when becoming visible to prevent rendering issues when hidden
   useEffect(() => {
     const map = mapRef.current
@@ -382,7 +399,7 @@ export default function SamplesMap({ isVisible, onOpenDetail }: { isVisible?: bo
     <div className={`relative w-full h-[70vh]`} id="samples-map-root">
       <div ref={mapContainerRef} className="w-full h-full rounded-lg border" />
       {/* Selection controls (mobile-friendly) */}
-      <div className="absolute left-2 top-12 z-20 flex items-center gap-1 rounded bg-white/90 backdrop-blur px-2 py-1 text-xs text-gray-700 shadow border">
+      <div className="absolute left-2 top-[90px] z-20 flex items-center gap-1 rounded bg-white/90 backdrop-blur px-2 py-1 text-xs text-gray-700 shadow border">
         <label className="flex items-center gap-1">
           <input type="checkbox" className="accent-emerald-600" checked={selectionMode} onChange={(e) => setSelectionMode(e.target.checked)} />
           <span>Selection</span>
@@ -423,11 +440,11 @@ export default function SamplesMap({ isVisible, onOpenDetail }: { isVisible?: bo
         />
       )}
       {/* Basemap style switcher (compact select) */}
-      <div className="absolute left-2 top-2 z-20">
+      <div className="absolute left-2 top-2 z-20 flex items-center gap-1">
         <label htmlFor="basemap-style" className="sr-only">Basemap style</label>
         <select
           id="basemap-style"
-          className="text-xs rounded border bg-white/90 backdrop-blur px-2 py-1 shadow focus:outline-none"
+          className="text-[10px] rounded-sm border bg-white/90 backdrop-blur px-1 py-0.5 shadow focus:outline-none"
           value={styleId}
           onChange={(e) => setStyleId(e.target.value as any)}
           title="Basemap style"
@@ -437,6 +454,18 @@ export default function SamplesMap({ isVisible, onOpenDetail }: { isVisible?: bo
           <option value="outdoors-v12">Outdoors</option>
           <option value="light-v11">Light</option>
           <option value="dark-v11">Dark</option>
+        </select>
+        <label htmlFor="projection" className="sr-only">Projection</label>
+        <select
+          id="projection"
+          className="text-[10px] rounded-sm border bg-white/90 backdrop-blur px-1 py-0.5 shadow focus:outline-none"
+          value={projectionId}
+          onChange={(e) => setProjectionId(e.target.value as any)}
+          title="Projection"
+        >
+          <option value="mercator">Mercator</option>
+          <option value="equirectangular">Equirectangular</option>
+          <option value="naturalEarth">Natural Earth</option>
         </select>
       </div>
       {/* Fullscreen toggle */}
