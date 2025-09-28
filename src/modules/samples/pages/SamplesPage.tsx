@@ -69,7 +69,7 @@ export default function Samples() {
       </div>
       <SelectionBar />
       <div className={mode === 'map' ? '' : 'hidden'}>
-        <SamplesMap totalCount={totalCount} isVisible={mode === 'map'} onOpenDetail={(id) => setDetailId(id)} />
+        <SamplesMap isVisible={mode === 'map'} onOpenDetail={(id) => setDetailId(id)} />
       </div>
       <div className={mode === 'table' ? '' : 'hidden'}>
         <SamplesList />

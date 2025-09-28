@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
-import { getSamplesGeoFeatureCollection } from '../features/api'
+import { getSamplesGeoFeatureCollection, getSamplesCount } from '../features/api'
 import { FullscreenIcon } from '../../../lib/icons'
 import { useSampleSelection } from '../features/selection'
 import { useSampleFilter } from '../features/sampleFilter'
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN as string
 
-export default function SamplesMap({ totalCount, isVisible, onOpenDetail }: { totalCount?: number, isVisible?: boolean, onOpenDetail?: (id: string) => void }) {
+export default function SamplesMap({ isVisible, onOpenDetail }: { isVisible?: boolean, onOpenDetail?: (id: string) => void }) {
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<mapboxgl.Map | null>(null)
   const { debouncedSearchText, allowedAccess, createdByIdEquals, setBbox, bboxMinLat, bboxMaxLat, bboxMinLon, bboxMaxLon } = useSampleFilter()
@@ -17,7 +17,7 @@ export default function SamplesMap({ totalCount, isVisible, onOpenDetail }: { to
   const latestRequestIdRef = useRef(0)
   const EMPTY_GEOJSON = { type: 'FeatureCollection', features: [] } as const
   const MAX_FEATURES_FOR_MAP = 100000
-  const exceedsLimit = (totalCount ?? 0) > MAX_FEATURES_FOR_MAP
+  const [internalCount, setInternalCount] = useState<number | null>(null)
   const [styleId, setStyleId] = useState<'streets-v12' | 'outdoors-v12' | 'satellite-streets-v12' | 'light-v11' | 'dark-v11'>('satellite-streets-v12')
   const lastAppliedStyleIdRef = useRef<string>('satellite-streets-v12')
   const [box, setBox] = useState<{ x0: number; y0: number; x1: number; y1: number } | null>(null)
@@ -27,10 +27,10 @@ export default function SamplesMap({ totalCount, isVisible, onOpenDetail }: { to
   const hoverPopupRef = useRef<mapboxgl.Popup | null>(null)
 
   // Keep latest params in refs for event handlers
-  const paramsRef = useRef({ debouncedSearchText, allowedAccess, createdByIdEquals, exceedsLimit, bboxMinLat, bboxMaxLat, bboxMinLon, bboxMaxLon })
+  const paramsRef = useRef({ debouncedSearchText, allowedAccess, createdByIdEquals, bboxMinLat, bboxMaxLat, bboxMinLon, bboxMaxLon })
   useEffect(() => {
-    paramsRef.current = { debouncedSearchText, allowedAccess, createdByIdEquals, exceedsLimit, bboxMinLat, bboxMaxLat, bboxMinLon, bboxMaxLon }
-  }, [debouncedSearchText, allowedAccess, createdByIdEquals, exceedsLimit, bboxMinLat, bboxMaxLat, bboxMinLon, bboxMaxLon])
+    paramsRef.current = { debouncedSearchText, allowedAccess, createdByIdEquals, bboxMinLat, bboxMaxLat, bboxMinLon, bboxMaxLon }
+  }, [debouncedSearchText, allowedAccess, createdByIdEquals, bboxMinLat, bboxMaxLat, bboxMinLon, bboxMaxLon])
 
   // Keep latest selection mode/action in a ref for map event handlers
   useEffect(() => {
@@ -184,31 +184,7 @@ export default function SamplesMap({ totalCount, isVisible, onOpenDetail }: { to
           mapRef.current.on('mousemove', 'samples-circle-selected', showHover)
         }
 
-        const { debouncedSearchText: dText, allowedAccess: access, createdByIdEquals: createdBy, exceedsLimit: limitNow, bboxMinLat: minLat, bboxMaxLat: maxLat, bboxMinLon: minLon, bboxMaxLon: maxLon } = paramsRef.current
-        if (limitNow) {
-          setIsLoading(false)
-          return
-        }
-
-        setIsLoading(true)
-        const requestId = ++latestRequestIdRef.current
-        const startedAt = performance.now()
-        const geojson = await getSamplesGeoFeatureCollection({
-          nameContains: dText || undefined,
-          allowedAccess: access,
-          createdByIdEquals: createdBy,
-          minLat,
-          maxLat,
-          minLon,
-          maxLon,
-        })
-        if (!mapRef.current) return
-        const source = mapRef.current.getSource('samples') as mapboxgl.GeoJSONSource
-        if (requestId === latestRequestIdRef.current) {
-          source.setData(geojson as any)
-        }
-        applySelectedFilterIfPresent()
-        finishLoadingWithMinDelay(startedAt, requestId)
+        // Do not fetch data here; fetching is handled by the debounced, gated effect below
       } catch (e) {
         // eslint-disable-next-line no-console
         console.error('Failed to load GeoJSON', e)
@@ -345,16 +321,33 @@ export default function SamplesMap({ totalCount, isVisible, onOpenDetail }: { to
     if (!mapRef.current) return
     const map = mapRef.current
     const existingSource = map.getSource('samples') as mapboxgl.GeoJSONSource | undefined
-    if (exceedsLimit) {
-      existingSource?.setData(EMPTY_GEOJSON as any)
-      setIsLoading(false)
-      return
-    }
-
     const debounceMs = 1800
     const timerId = window.setTimeout(async () => {
       try {
         setIsLoading(true)
+        // Always check count first to gate heavy fetches
+        let cnt = 0
+        try {
+          cnt = await getSamplesCount({
+            nameContains: debouncedSearchText || undefined,
+            allowedAccess: allowedAccess,
+            createdByIdEquals,
+            minLat: bboxMinLat,
+            maxLat: bboxMaxLat,
+            minLon: bboxMinLon,
+            maxLon: bboxMaxLon,
+          })
+          setInternalCount(cnt)
+        } catch (e) {
+          // eslint-disable-next-line no-console
+          console.error('Failed to fetch count', e)
+        }
+        if (cnt > MAX_FEATURES_FOR_MAP) {
+          existingSource?.setData(EMPTY_GEOJSON as any)
+          setIsLoading(false)
+          return
+        }
+
         const requestId = ++latestRequestIdRef.current
         const startedAt = performance.now()
         // Clear outdated data while fetching
@@ -383,7 +376,7 @@ export default function SamplesMap({ totalCount, isVisible, onOpenDetail }: { to
     return () => {
       window.clearTimeout(timerId)
     }
-  }, [debouncedSearchText, allowedAccess, createdByIdEquals, totalCount, bboxMinLat, bboxMaxLat, bboxMinLon, bboxMaxLon])
+  }, [debouncedSearchText, allowedAccess, createdByIdEquals, bboxMinLat, bboxMaxLat, bboxMinLon, bboxMaxLon])
 
   return (
     <div className={`relative w-full h-[70vh]`} id="samples-map-root">
@@ -469,7 +462,7 @@ export default function SamplesMap({ totalCount, isVisible, onOpenDetail }: { to
           <span className="hidden sm:inline">Fullscreen</span>
         </button>
       </div>
-      {exceedsLimit && (
+      {internalCount !== null && internalCount > MAX_FEATURES_FOR_MAP && (
         <div className="pointer-events-none absolute left-1/2 top-2 z-20 -translate-x-1/2">
           <div className="rounded-md border border-yellow-300 bg-yellow-50 text-yellow-800 px-3 py-2 text-sm shadow">
             Data exceeds 100k records, please filter down to see on map.

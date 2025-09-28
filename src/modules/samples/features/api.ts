@@ -54,6 +54,22 @@ export async function getSampleWithLocationById(id: string) {
   return http<SampleRecord>(`/api/core/sample-with-locations/${encodeURIComponent(id)}`, { method: 'GET' })
 }
 
+export async function getSamplesCount(paramsInput?: SampleCriteria): Promise<number> {
+  const params = new URLSearchParams()
+  if (paramsInput?.nameContains) params.set('name.contains', paramsInput.nameContains)
+  if (paramsInput?.allowedAccess) params.set('allowedAccess', paramsInput.allowedAccess)
+  if (paramsInput?.createdByIdEquals) params.set('createdById.equals', paramsInput.createdByIdEquals)
+  if (paramsInput?.minLat !== undefined) params.set('locationCriteria.lat.greaterOrEqualThan', String(paramsInput.minLat))
+  if (paramsInput?.maxLat !== undefined) params.set('locationCriteria.lat.lessOrEqualThan', String(paramsInput.maxLat))
+  if (paramsInput?.minLon !== undefined) params.set('locationCriteria.lon.greaterOrEqualThan', String(paramsInput.minLon))
+  if (paramsInput?.maxLon !== undefined) params.set('locationCriteria.lon.lessOrEqualThan', String(paramsInput.maxLon))
+  const query = params.toString()
+  const path = query
+    ? `/api/core/sample-with-locations/count?${query}`
+    : '/api/core/sample-with-locations/count'
+  return http<number>(path, { method: 'GET' })
+}
+
 // (moved LithoUser API to features/auth/api.ts)
 
 
