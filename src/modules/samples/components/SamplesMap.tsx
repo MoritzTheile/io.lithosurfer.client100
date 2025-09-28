@@ -227,7 +227,7 @@ export default function SamplesMap({ totalCount, isVisible, onOpenDetail }: { to
       const minLat = bounds.getSouth()
       const maxLon = bounds.getEast()
       const maxLat = bounds.getNorth()
-      setBbox(minLon, minLat, maxLon, maxLat)
+      // setBbox(minLon, minLat, maxLon, maxLat)
     })
 
     // Selection rubber band (mouse/touch) when selectionMode is active

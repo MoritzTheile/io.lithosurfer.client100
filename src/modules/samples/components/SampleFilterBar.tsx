@@ -12,7 +12,7 @@ export default function SampleFilterBar() {
         value={searchText}
         onChange={(e) => setSearchText(e.target.value)}
       />
-      <div className="hidden md:flex items-center gap-1 text-[11px] text-gray-700 bg-white/70 rounded border px-2 py-1">
+      {/* <div className="hidden md:flex items-center gap-1 text-[11px] text-gray-700 bg-white/70 rounded border px-2 py-1">
         <span className="font-medium">BBox:</span>
         <span title="minLon">{bboxMinLon?.toFixed(4) ?? '-'}</span>,
         <span title="minLat">{bboxMinLat?.toFixed(4) ?? '-'}</span>
@@ -20,7 +20,7 @@ export default function SampleFilterBar() {
         <span title="maxLon">{bboxMaxLon?.toFixed(4) ?? '-'}</span>,
         <span title="maxLat">{bboxMaxLat?.toFixed(4) ?? '-'}</span>
         <button type="button" className="ml-2 rounded px-1 py-0.5 border hover:bg-gray-50" onClick={clearBbox} title="Clear map bounds filter">×</button>
-      </div>
+      </div> */}
       <LithoUserPicker value={createdByIdEquals} onChange={setCreatedByIdEquals} />
       <button
         type="button"
