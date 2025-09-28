@@ -1,8 +1,11 @@
-import React from 'react'
+import React, { useMemo, useState } from 'react'
 import { useSampleSelection } from '../features/selection'
+import LargeModal from '../../shared/LargeModal'
 
 export default function SelectionBar() {
   const { selectedIds, clear } = useSampleSelection()
+  const [showModal, setShowModal] = useState(false)
+  const selectedList = useMemo(() => Array.from(selectedIds).map(String), [selectedIds])
   const count = selectedIds.size
   if (count === 0) return null
   return (
@@ -13,13 +16,29 @@ export default function SelectionBar() {
         </span>
         <span className="text-emerald-800">selected</span>
       </div>
-      <button
-        type="button"
-        className="rounded-md border px-3 py-1 text-sm bg-white text-emerald-700 hover:bg-emerald-50"
-        onClick={clear}
-      >
-        Clear selection
-      </button>
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          className="rounded-md border px-3 py-1 text-sm bg-white text-emerald-700 hover:bg-emerald-50"
+          onClick={() => setShowModal(true)}
+        >
+          Show data
+        </button>
+        <button
+          type="button"
+          className="rounded-md border px-3 py-1 text-sm bg-white text-emerald-700 hover:bg-emerald-50"
+          onClick={clear}
+        >
+          Clear selection
+        </button>
+      </div>
+      <LargeModal isOpen={showModal} onClose={() => setShowModal(false)} title={<span>Selected IDs ({count})</span>}>
+        {selectedList.length > 0 ? (
+          <pre className="text-xs whitespace-pre-wrap break-words">{selectedList.join('\n')}</pre>
+        ) : (
+          <div className="text-sm text-gray-600">No items selected.</div>
+        )}
+      </LargeModal>
     </div>
   )
 }
