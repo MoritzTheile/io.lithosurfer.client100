@@ -60,6 +60,36 @@ export default function SamplesMap({ isVisible, onOpenDetail }: { isVisible?: bo
     }, remaining)
   }
 
+  function normalizeGeojsonAndWarn(geojson: any) {
+    if (!geojson || !Array.isArray(geojson.features)) return geojson
+    const seen: Record<string, { names: Set<string>; coords: Set<string> }> = {}
+    for (const f of geojson.features) {
+      const p = (f.properties = f.properties || {})
+      const sid = p.sampleId ?? p.id
+      if (sid !== undefined && sid !== null) {
+        p.sampleId = String(sid)
+      }
+      const idKey = String(p.sampleId ?? '')
+      if (!seen[idKey]) seen[idKey] = { names: new Set<string>(), coords: new Set<string>() }
+      const name = String(p.name ?? p.sampleName ?? '')
+      seen[idKey].names.add(name)
+      let coordKey = ''
+      try {
+        if (f.geometry?.type === 'Point' && Array.isArray(f.geometry.coordinates)) {
+          coordKey = `${f.geometry.coordinates[0]},${f.geometry.coordinates[1]}`
+        }
+      } catch {}
+      if (coordKey) seen[idKey].coords.add(coordKey)
+    }
+    for (const [id, agg] of Object.entries(seen)) {
+      if (id && (agg.coords.size > 1 || agg.names.size > 1)) {
+        // eslint-disable-next-line no-console
+        console.warn('Duplicate sampleId with differing data', { sampleId: id, names: Array.from(agg.names), coords: Array.from(agg.coords) })
+      }
+    }
+    return geojson
+  }
+
   function applySelectedFilterIfPresent() {
     const map = mapRef.current
     if (!map) return
@@ -68,7 +98,7 @@ export default function SamplesMap({ isVisible, onOpenDetail }: { isVisible?: bo
     const ids = Array.from(selectedIds || []).map(String)
     const filter: any = [
       'in',
-      ['to-string', ['coalesce', ['get', 'id'], ['get', 'sampleId']]],
+      ['to-string', ['get', 'sampleId']],
       ['literal', ids],
     ]
     map.setFilter(layerId, filter)
@@ -125,7 +155,7 @@ export default function SamplesMap({ isVisible, onOpenDetail }: { isVisible?: bo
             },
             filter: [
               'in',
-              ['coalesce', ['get', 'id'], ['get', 'sampleId']],
+              ['get', 'sampleId'],
               ['literal', []],
             ] as any,
           })
@@ -162,7 +192,7 @@ export default function SamplesMap({ isVisible, onOpenDetail }: { isVisible?: bo
               layers: ['samples-circle-selected', 'samples-circle'],
             })
             const feature = features && features[0]
-            const id = feature && (feature.properties?.id || feature.properties?.sampleId)
+            const id = feature && feature.properties?.sampleId
             if (!id) return
             if (onOpenDetail) {
               onOpenDetail(String(id))
@@ -338,7 +368,7 @@ export default function SamplesMap({ isVisible, onOpenDetail }: { isVisible?: bo
     const ids = Array.from(selectedIds || []).map(String)
     const filter: any = [
       'in',
-      ['to-string', ['coalesce', ['get', 'id'], ['get', 'sampleId']]],
+      ['to-string', ['get', 'sampleId']],
       ['literal', ids],
     ]
     map.setFilter(layerId, filter)
@@ -420,7 +450,7 @@ export default function SamplesMap({ isVisible, onOpenDetail }: { isVisible?: bo
         })
         const source = map.getSource('samples') as mapboxgl.GeoJSONSource | undefined
         if (requestId === latestRequestIdRef.current) {
-          source?.setData(geojson as any)
+          source?.setData(normalizeGeojsonAndWarn(geojson) as any)
         }
         applySelectedFilterIfPresent()
         finishLoadingWithMinDelay(startedAt, requestId)
@@ -453,11 +483,11 @@ export default function SamplesMap({ isVisible, onOpenDetail }: { isVisible?: bo
             <button type="button" className="ml-1 rounded border px-2 py-0.5 bg-white hover:bg-gray-50" onClick={() => {
               const map = mapRef.current
               if (!map) return
-              const features = map.queryRenderedFeatures({ layers: ['samples-circle', 'samples-circle-selected'] }) as any
-              const ids: string[] = Array.from(new Set((features as any[])
-                .map((f: any) => f?.properties?.id ?? f?.properties?.sampleId)
-                .filter((v: any): v is string | number => v !== undefined && v !== null)
-                .map((v: any) => String(v))))
+          const features = map.queryRenderedFeatures({ layers: ['samples-circle', 'samples-circle-selected'] }) as any
+          const ids: string[] = Array.from(new Set((features as any[])
+            .map((f: any) => f?.properties?.sampleId)
+            .filter((v: any): v is string | number => v !== undefined && v !== null)
+            .map((v: any) => String(v))))
               if (ids.length > 0) {
                 if (selectionAction === 'unselect') deselectMany(ids)
                 else selectMany(ids)
