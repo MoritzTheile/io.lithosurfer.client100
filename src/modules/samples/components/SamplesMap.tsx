@@ -26,6 +26,7 @@ export default function SamplesMap({ isVisible, onOpenDetail }: { isVisible?: bo
   const [selectionAction, setSelectionAction] = useState<'select' | 'unselect'>('select')
   const selectionRef = useRef({ selectionMode, selectionAction })
   const hoverPopupRef = useRef<mapboxgl.Popup | null>(null)
+  const selectedIdsRef = useRef<Set<string>>(new Set(Array.from(selectedIds).map(String)))
 
   // Keep latest params in refs for event handlers
   const paramsRef = useRef({ debouncedSearchText, allowedAccess, createdByIdEquals, bboxMinLat, bboxMaxLat, bboxMinLon, bboxMaxLon })
@@ -37,6 +38,11 @@ export default function SamplesMap({ isVisible, onOpenDetail }: { isVisible?: bo
   useEffect(() => {
     selectionRef.current = { selectionMode, selectionAction }
   }, [selectionMode, selectionAction])
+
+  // Keep latest selected ids in a ref for immediate filter updates
+  useEffect(() => {
+    selectedIdsRef.current = new Set(Array.from(selectedIds).map(String))
+  }, [selectedIds])
 
   function repositionMapboxControls() {
     const map = mapRef.current
@@ -64,18 +70,38 @@ export default function SamplesMap({ isVisible, onOpenDetail }: { isVisible?: bo
   // No longer needed since we rely on feature.id consistently.
   function passthroughGeojson(g: any) { return g }
 
-  function applySelectedFilterIfPresent() {
+  function applySelectedFilter(ids: string[]) {
     const map = mapRef.current
     if (!map) return
-    const layerId = 'samples-circle-selected'
-    if (!map.getLayer(layerId)) return
-    const ids = Array.from(selectedIds || []).map(String)
+    const selectedLayerId = 'samples-circle-selected'
+    const baseLayerId = 'samples-circle'
+    if (!map.getLayer(selectedLayerId)) return
     const filter: any = [
       'in',
       ['to-string', ['id']],
       ['literal', ids],
     ]
-    map.setFilter(layerId, filter)
+    map.setFilter(selectedLayerId, filter)
+    // Exclude selected features from base layer to avoid overdraw hiding highlight
+    if (map.getLayer(baseLayerId)) {
+      if (ids.length > 0) {
+        const baseFilter: any = [
+          '!',
+          [
+            'in',
+            ['to-string', ['id']],
+            ['literal', ids],
+          ],
+        ]
+        map.setFilter(baseLayerId, baseFilter)
+      } else {
+        // Clear filter to show all when nothing selected
+        try { map.setFilter(baseLayerId, null as any) } catch {}
+      }
+    }
+  }
+  function applySelectedFilterIfPresent() {
+    applySelectedFilter(Array.from(selectedIdsRef.current))
   }
 
   function escapeHtml(input: string): string {
@@ -117,6 +143,7 @@ export default function SamplesMap({ isVisible, onOpenDetail }: { isVisible?: bo
             },
           })
           // Selected samples layer (on top)
+          // Draw selected layer above base and above any clustering layers
           mapRef.current.addLayer({
             id: 'samples-circle-selected',
             type: 'circle',
@@ -129,10 +156,16 @@ export default function SamplesMap({ isVisible, onOpenDetail }: { isVisible?: bo
             },
             filter: [
               'in',
-              ['id'],
+              ['to-string', ['id']],
               ['literal', []],
             ] as any,
+            // Insert above base layer to ensure visibility
+            // Note: Mapbox addLayer options signature allows beforeId; we achieve same by removing & re-adding if needed.
           })
+          // Ensure selected layer is on top
+          try { mapRef.current.moveLayer('samples-circle-selected') } catch {}
+          // Initialize base layer filter to avoid hiding when selection toggles
+          applySelectedFilterIfPresent()
           applySelectedFilterIfPresent()
           const showHover = (e: mapboxgl.MapMouseEvent & { features?: any[] }) => {
             if (!mapRef.current || !e.features || e.features.length === 0) return
@@ -274,7 +307,13 @@ export default function SamplesMap({ isVisible, onOpenDetail }: { isVisible?: bo
           const feature = features && features[0]
           const id = feature && feature.id
           if (id) {
-            toggle(String(id))
+            const idStr = String(id)
+            // Optimistically update ref to avoid closure lag
+            const next = new Set(selectedIdsRef.current)
+            if (next.has(idStr)) next.delete(idStr); else next.add(idStr)
+            selectedIdsRef.current = next
+            applySelectedFilter(Array.from(next))
+            toggle(idStr)
           }
         } else {
           const xMin = Math.min(start.x, ue.point.x)
@@ -287,8 +326,16 @@ export default function SamplesMap({ isVisible, onOpenDetail }: { isVisible?: bo
             .filter((v) => v !== undefined && v !== null)
             .map((v) => String(v as any))
           if (ids.length > 0) {
-            if (selectionRef.current.selectionAction === 'unselect') deselectMany(ids)
-            else selectMany(ids)
+            const next = new Set(selectedIdsRef.current)
+            if (selectionRef.current.selectionAction === 'unselect') {
+              ids.forEach((i) => next.delete(i))
+              deselectMany(ids)
+            } else {
+              ids.forEach((i) => next.add(i))
+              selectMany(ids)
+            }
+            selectedIdsRef.current = next
+            applySelectedFilter(Array.from(next))
           }
         }
         setBox(null)
@@ -335,17 +382,7 @@ export default function SamplesMap({ isVisible, onOpenDetail }: { isVisible?: bo
 
   // Reflect selected IDs on the selected layer filter
   useEffect(() => {
-    const map = mapRef.current
-    if (!map) return
-    const layerId = 'samples-circle-selected'
-    if (!map.getLayer(layerId)) return
-    const ids = Array.from(selectedIds || []).map(String)
-    const filter: any = [
-      'in',
-      ['to-string', ['get', 'sampleId']],
-      ['literal', ids],
-    ]
-    map.setFilter(layerId, filter)
+    applySelectedFilterIfPresent()
   }, [selectedIds])
 
   // Change style when styleId updates
