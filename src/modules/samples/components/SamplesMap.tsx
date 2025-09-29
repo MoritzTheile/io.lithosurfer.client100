@@ -154,7 +154,25 @@ export default function SamplesMap({ isVisible, onOpenDetail }: { isVisible?: bo
           const hideHover = () => {
             if (hoverPopupRef.current) hoverPopupRef.current.remove()
           }
-          // Avoid native click conflicts with our rubber-band logic; rely on pointer handlers instead
+          // Native click handler for non-selection mode navigation
+          mapRef.current.on('click', (e) => {
+            if (!mapRef.current) return
+            if (selectionRef.current.selectionMode) return
+            const features = mapRef.current.queryRenderedFeatures(e.point, {
+              layers: ['samples-circle-selected', 'samples-circle'],
+            })
+            const feature = features && features[0]
+            const id = feature && (feature.properties?.id || feature.properties?.sampleId)
+            if (!id) return
+            if (onOpenDetail) {
+              onOpenDetail(String(id))
+            } else {
+              const url = `/samples/${id}`
+              window.history.pushState({}, '', url)
+              const navEvt = new PopStateEvent('popstate')
+              dispatchEvent(navEvt)
+            }
+          })
           mapRef.current.on('mouseenter', 'samples-circle', () => {
             if (!mapRef.current) return
             const cur = selectionRef.current.selectionMode ? 'crosshair' : 'pointer'
