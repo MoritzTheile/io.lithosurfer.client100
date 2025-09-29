@@ -491,19 +491,6 @@ export default function SamplesMap({ isVisible, onOpenDetail }: { isVisible?: bo
               <button type="button" className={`px-2 py-0.5 ${selectionAction === 'select' ? 'bg-emerald-600 text-white' : 'bg-white'}`} onClick={() => setSelectionAction('select')}>Add</button>
               <button type="button" className={`px-2 py-0.5 ${selectionAction === 'unselect' ? 'bg-rose-600 text-white' : 'bg-white'}`} onClick={() => setSelectionAction('unselect')}>Remove</button>
             </div>
-            <button type="button" className="ml-1 rounded border px-2 py-0.5 bg-white hover:bg-gray-50" onClick={() => {
-              const map = mapRef.current
-              if (!map) return
-          const features = map.queryRenderedFeatures({ layers: ['samples-circle', 'samples-circle-selected'] }) as any
-          const ids: string[] = Array.from(new Set((features as any[])
-            .map((f: any) => f?.properties?.sampleId)
-            .filter((v: any): v is string | number => v !== undefined && v !== null)
-            .map((v: any) => String(v))))
-              if (ids.length > 0) {
-                if (selectionAction === 'unselect') deselectMany(ids)
-                else selectMany(ids)
-              }
-            }}>All in view</button>
             <button type="button" className="ml-1 rounded border px-2 py-0.5 bg-white hover:bg-gray-50" onClick={() => setSelectionMode(false)}>Done</button>
           </>
         )}
