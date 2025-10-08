@@ -136,7 +136,7 @@ export default function SamplesMap({ isVisible, onOpenDetail }: { isVisible?: bo
             source: 'samples',
             paint: {
               'circle-radius': 4,
-              'circle-color': '#ffffff',
+              'circle-color': '#facc15',
               'circle-stroke-width': 1,
               'circle-stroke-color': '#777777',
             },
