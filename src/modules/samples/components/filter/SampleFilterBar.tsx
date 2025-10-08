@@ -1,6 +1,6 @@
 import React from 'react'
-import { useSampleFilter } from '../features/sampleFilter'
-import { LithoUserPicker } from '../../auth'
+import { useSampleFilter } from '../../features/sampleFilter'
+import { LithoUserPicker } from '../../../auth'
 import RegionSelector from './RegionSelector'
 
 

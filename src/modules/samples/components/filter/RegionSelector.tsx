@@ -1,5 +1,5 @@
 import React from 'react'
-import { useSampleFilter } from '../features/sampleFilter'
+import { useSampleFilter } from '../../features/sampleFilter'
 
 const lithoRegionOptions = [
   'Africa',

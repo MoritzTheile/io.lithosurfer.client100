@@ -1,5 +1,5 @@
 import { useSampleFilter } from '../features/sampleFilter'
-import SampleFilterBar from '../components/SampleFilterBar'
+import SampleFilterBar from '../components/filter/SampleFilterBar'
 import SamplesMap from '../components/SamplesMap'
 import SamplesList from '../components/SamplesList'
 import SelectionBar from '../components/SelectionBar'
