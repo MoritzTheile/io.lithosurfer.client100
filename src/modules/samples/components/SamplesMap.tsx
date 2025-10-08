@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { getSamplesGeoFeatureCollection, getSamplesCount } from '../features/api'
-import { useSamplesCountQuery, useSamplesGeoFeatureCollectionQuery } from '../features/useSamplesQuery'
+import { useGuardedSamplesGeoQuery } from '../features/useSamplesQuery'
 import { FullscreenIcon } from '../../../lib/icons'
 import { useSampleSelection } from '../features/selection'
 import { useSampleFilter } from '../features/sampleFilter'
@@ -414,18 +414,16 @@ export default function SamplesMap({ isVisible, onOpenDetail }: { isVisible?: bo
     }
   }, [isVisible])
 
-  // React Query-powered data flow: count -> gate geojson
+  // React Query-powered data flow: count -> gate geojson (guarded hook)
   const {
-    data: countData,
-    isLoading: isCountLoading,
-    isFetching: isCountFetching,
-  } = useSamplesCountQuery()
-  const allowGeo = (countData ?? 0) <= MAX_FEATURES_FOR_MAP
-  const {
+    allowGeo,
     data: geoData,
     isLoading: isGeoLoading,
     isFetching: isGeoFetching,
-  } = useSamplesGeoFeatureCollectionQuery(allowGeo)
+    countData,
+    isCountLoading,
+    isCountFetching,
+  } = useGuardedSamplesGeoQuery(MAX_FEATURES_FOR_MAP)
 
   useEffect(() => {
     setInternalCount(countData ?? null)

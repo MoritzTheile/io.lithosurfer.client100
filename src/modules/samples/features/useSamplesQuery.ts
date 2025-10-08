@@ -65,3 +65,16 @@ export function useSamplesGeoFeatureCollectionQuery(enabled: boolean) {
   })
 }
 
+export function useGuardedSamplesGeoQuery(maxFeaturesForMap: number = 100000) {
+  const countQuery = useSamplesCountQuery()
+  const allowGeo = (countQuery.data ?? 0) <= maxFeaturesForMap
+  const geoQuery = useSamplesGeoFeatureCollectionQuery(allowGeo)
+  return {
+    allowGeo,
+    countData: countQuery.data,
+    isCountLoading: countQuery.isLoading,
+    isCountFetching: countQuery.isFetching,
+    ...geoQuery,
+  }
+}
+
