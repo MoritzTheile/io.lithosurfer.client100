@@ -41,6 +41,7 @@ export default function SampleDetail() {
   const { id } = useParams()
   const { state } = useLocation() as { state?: { sample?: AnyRecord, featureProperties?: AnyRecord } }
   const navigate = useNavigate()
+  const [showRawJson, setShowRawJson] = React.useState(false)
 
   const payload = state?.sample || state?.featureProperties
 
@@ -49,9 +50,24 @@ export default function SampleDetail() {
       <div className="flex items-center gap-2">
         <button className="rounded-md border px-3 py-1 text-sm" onClick={() => navigate(-1)}>Back</button>
         <h1 className="text-2xl font-semibold">Sample {id}</h1>
+        {payload ? (
+          <button
+            className="rounded-md border px-3 py-1 text-sm"
+            onClick={() => setShowRawJson((v) => !v)}
+          >
+            {showRawJson ? 'Hide raw json' : 'Show raw json'}
+          </button>
+        ) : null}
       </div>
       {payload ? (
-        <Section data={payload} />
+        showRawJson ? (
+          <div className="rounded-lg border bg-white">
+            <div className="px-4 py-2 border-b font-medium text-sm bg-gray-50">Raw JSON</div>
+            <pre className="p-4 text-xs overflow-auto whitespace-pre-wrap">{JSON.stringify(payload, null, 2)}</pre>
+          </div>
+        ) : (
+          <div className="text-sm text-gray-600">Click "Show raw json" to view the payload.</div>
+        )
       ) : (
         <div className="text-sm text-gray-600">No detail data was provided from the previous page.</div>
       )}
