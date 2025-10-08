@@ -67,7 +67,8 @@ export function useSamplesGeoFeatureCollectionQuery(enabled: boolean) {
 
 export function useGuardedSamplesGeoQuery(maxFeaturesForMap: number = 100000) {
   const countQuery = useSamplesCountQuery()
-  const allowGeo = (countQuery.data ?? 0) <= maxFeaturesForMap
+  const countValue = countQuery.data
+  const allowGeo = typeof countValue === 'number' && countValue <= maxFeaturesForMap
   const geoQuery = useSamplesGeoFeatureCollectionQuery(allowGeo)
   return {
     allowGeo,
