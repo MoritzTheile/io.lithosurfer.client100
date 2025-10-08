@@ -18,8 +18,8 @@ export default function SamplesMap({ isVisible, onOpenDetail }: { isVisible?: bo
   const EMPTY_GEOJSON = { type: 'FeatureCollection', features: [] } as const
   const MAX_FEATURES_FOR_MAP = 100000
   const [internalCount, setInternalCount] = useState<number | null>(null)
-  const [styleId, setStyleId] = useState<'streets-v12' | 'outdoors-v12' | 'satellite-streets-v12' | 'light-v11' | 'dark-v11'>('satellite-streets-v12')
-  const lastAppliedStyleIdRef = useRef<string>('satellite-streets-v12')
+  const [styleId, setStyleId] = useState<'streets-v12' | 'outdoors-v12' | 'satellite-streets-v12' | 'light-v11' | 'dark-v11'>('light-v11')
+  const lastAppliedStyleIdRef = useRef<string>('light-v11')
   const [projectionId, setProjectionId] = useState<'mercator' | 'equirectangular' | 'naturalEarth'>('mercator')
   const [box, setBox] = useState<{ x0: number; y0: number; x1: number; y1: number } | null>(null)
   const [selectionMode, setSelectionMode] = useState(false)
