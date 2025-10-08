@@ -112,8 +112,9 @@ export default function SamplesMap({ isVisible, onOpenDetail }: { isVisible?: bo
     mapRef.current = new mapboxgl.Map({
       container: mapContainerRef.current,
       style: `mapbox://styles/mapbox/${styleId}`,
-      center: [133.7751, -25.2744],
-      zoom: 3,
+      center: [0, 0],
+      zoom: 1.0,
+      renderWorldCopies: false,
     })
 
     mapRef.current.addControl(new mapboxgl.NavigationControl(), 'top-right')
