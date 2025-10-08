@@ -6,6 +6,7 @@ export type SampleCriteria = {
   nameContains?: string,
   allowedAccess?: 'VIEWABLE' | 'WRITEABLE' | 'PREVIEWABLE',
   createdByIdEquals?: string,
+  lithoRegionEquals?: string,
   // Optional bounding box
   minLat?: number,
   maxLat?: number,
@@ -20,6 +21,7 @@ export async function getSamplesWithLocations(page: number = 0, size: number = 2
   if (paramsInput?.allowedAccess) params.set('allowedAccess', paramsInput.allowedAccess)
   if (paramsInput?.nameContains) params.set('name.contains', paramsInput.nameContains)
   if (paramsInput?.createdByIdEquals) params.set('createdById.equals', paramsInput.createdByIdEquals)
+  if (paramsInput?.lithoRegionEquals) params.set('locationCriteria.lithoRegion.equals', paramsInput.lithoRegionEquals)
   if (paramsInput?.minLat !== undefined) params.set('locationCriteria.lat.greaterOrEqualThan', String(paramsInput.minLat))
   if (paramsInput?.maxLat !== undefined) params.set('locationCriteria.lat.lessOrEqualThan', String(paramsInput.maxLat))
   if (paramsInput?.minLon !== undefined) params.set('locationCriteria.lon.greaterOrEqualThan', String(paramsInput.minLon))
@@ -39,6 +41,7 @@ export async function getSamplesGeoFeatureCollection(paramsInput?: SampleCriteri
   if (paramsInput?.nameContains) params.set('name.contains', paramsInput.nameContains)
   if (paramsInput?.allowedAccess) params.set('allowedAccess', paramsInput.allowedAccess)
   if (paramsInput?.createdByIdEquals) params.set('createdById.equals', paramsInput.createdByIdEquals)
+  if (paramsInput?.lithoRegionEquals) params.set('locationCriteria.lithoRegion.equals', paramsInput.lithoRegionEquals)
   if (paramsInput?.minLat !== undefined) params.set('locationCriteria.lat.greaterOrEqualThan', String(paramsInput.minLat))
   if (paramsInput?.maxLat !== undefined) params.set('locationCriteria.lat.lessOrEqualThan', String(paramsInput.maxLat))
   if (paramsInput?.minLon !== undefined) params.set('locationCriteria.lon.greaterOrEqualThan', String(paramsInput.minLon))
@@ -59,6 +62,7 @@ export async function getSamplesCount(paramsInput?: SampleCriteria): Promise<num
   if (paramsInput?.nameContains) params.set('name.contains', paramsInput.nameContains)
   if (paramsInput?.allowedAccess) params.set('allowedAccess', paramsInput.allowedAccess)
   if (paramsInput?.createdByIdEquals) params.set('createdById.equals', paramsInput.createdByIdEquals)
+  if (paramsInput?.lithoRegionEquals) params.set('locationCriteria.lithoRegion.equals', paramsInput.lithoRegionEquals)
   if (paramsInput?.minLat !== undefined) params.set('locationCriteria.lat.greaterOrEqualThan', String(paramsInput.minLat))
   if (paramsInput?.maxLat !== undefined) params.set('locationCriteria.lat.lessOrEqualThan', String(paramsInput.maxLat))
   if (paramsInput?.minLon !== undefined) params.set('locationCriteria.lon.greaterOrEqualThan', String(paramsInput.minLon))

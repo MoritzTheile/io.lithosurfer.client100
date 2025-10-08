@@ -1,6 +1,8 @@
 import React from 'react'
 import { useSampleFilter } from '../features/sampleFilter'
 import { LithoUserPicker } from '../../auth'
+import RegionSelector from './RegionSelector'
+
 
 export default function SampleFilterBar() {
   const { searchText, setSearchText, createdByIdEquals, setCreatedByIdEquals, clearFilters, bboxMinLon, bboxMinLat, bboxMaxLon, bboxMaxLat, clearBbox } = useSampleFilter()
@@ -22,6 +24,7 @@ export default function SampleFilterBar() {
         <button type="button" className="ml-2 rounded px-1 py-0.5 border hover:bg-gray-50" onClick={clearBbox} title="Clear map bounds filter">×</button>
       </div> */}
       <LithoUserPicker value={createdByIdEquals} onChange={setCreatedByIdEquals} />
+      <RegionSelector />
       <button
         type="button"
         className="rounded-md border px-3 py-2 text-sm bg-white hover:bg-indigo-50 text-indigo-700"

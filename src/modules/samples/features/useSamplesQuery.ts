@@ -6,15 +6,16 @@ import { useSampleFilter } from './sampleFilter'
 type SamplesQueryData = { rows: SampleRecord[]; totalCount: number }
 
 export function useSamplesQuery() {
-  const { page, size, debouncedSearchText, createdByIdEquals, debouncedBboxMinLat, debouncedBboxMaxLat, debouncedBboxMinLon, debouncedBboxMaxLon } = useSampleFilter()
+  const { page, size, debouncedSearchText, createdByIdEquals, lithoRegion, debouncedBboxMinLat, debouncedBboxMaxLat, debouncedBboxMinLon, debouncedBboxMaxLon } = useSampleFilter()
 
   const q = useQuery<{ items: SampleRecord[]; totalCount: number }, Error, SamplesQueryData>({
-    queryKey: ['samples', page, size, debouncedSearchText, createdByIdEquals, debouncedBboxMinLat, debouncedBboxMaxLat, debouncedBboxMinLon, debouncedBboxMaxLon],
+    queryKey: ['samples', page, size, debouncedSearchText, createdByIdEquals, lithoRegion, debouncedBboxMinLat, debouncedBboxMaxLat, debouncedBboxMinLon, debouncedBboxMaxLon],
     queryFn: () =>
       getSamplesWithLocations(page, size, {
         allowedAccess: 'VIEWABLE',
         nameContains: debouncedSearchText || undefined,
         createdByIdEquals,
+        lithoRegionEquals: lithoRegion || undefined,
         minLat: debouncedBboxMinLat,
         maxLat: debouncedBboxMaxLat,
         minLon: debouncedBboxMinLon,

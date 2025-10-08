@@ -9,6 +9,7 @@ type SampleFilterState = {
   size: number
   allowedAccess?: AllowedAccess
   createdByIdEquals?: string
+  lithoRegion?: string
   totalCount: number
   // Bounding box (minLon, minLat, maxLon, maxLat)
   bboxMinLon?: number
@@ -24,6 +25,7 @@ type SampleFilterState = {
   setSize: (v: number) => void
   setAllowedAccess: (v: AllowedAccess | undefined) => void
   setCreatedByIdEquals: (v: string | undefined) => void
+  setLithoRegion: (v: string | undefined) => void
   setTotalCount: (n: number) => void
   setBbox: (minLon: number, minLat: number, maxLon: number, maxLat: number) => void
   clearBbox: () => void
@@ -40,6 +42,7 @@ const useSampleFilterStore = create<SampleFilterState>((set) => ({
   size: 20,
   allowedAccess: 'VIEWABLE',
   createdByIdEquals: undefined,
+  lithoRegion: undefined,
   totalCount: 0,
   bboxMinLon: undefined,
   bboxMinLat: undefined,
@@ -64,6 +67,7 @@ const useSampleFilterStore = create<SampleFilterState>((set) => ({
   setSize: (v: number) => set({ size: v, page: 0 }),
   setAllowedAccess: (v: AllowedAccess | undefined) => set({ allowedAccess: v }),
   setCreatedByIdEquals: (v: string | undefined) => set({ createdByIdEquals: v, page: 0 }),
+  setLithoRegion: (v: string | undefined) => set({ lithoRegion: v, page: 0 }),
   setTotalCount: (n: number) => set({ totalCount: n }),
   setBbox: (minLon: number, minLat: number, maxLon: number, maxLat: number) => {
     if (typeof window !== 'undefined' && bboxDebounceTimer) {
@@ -82,7 +86,7 @@ const useSampleFilterStore = create<SampleFilterState>((set) => ({
     }
     set({ bboxMinLon: undefined, bboxMinLat: undefined, bboxMaxLon: undefined, bboxMaxLat: undefined, debouncedBboxMinLon: undefined, debouncedBboxMinLat: undefined, debouncedBboxMaxLon: undefined, debouncedBboxMaxLat: undefined, page: 0 })
   },
-  clearFilters: () => set({ searchText: '', createdByIdEquals: undefined, page: 0, bboxMinLon: undefined, bboxMinLat: undefined, bboxMaxLon: undefined, bboxMaxLat: undefined, debouncedBboxMinLon: undefined, debouncedBboxMinLat: undefined, debouncedBboxMaxLon: undefined, debouncedBboxMaxLat: undefined }),
+  clearFilters: () => set({ searchText: '', createdByIdEquals: undefined, lithoRegion: undefined, page: 0, bboxMinLon: undefined, bboxMinLat: undefined, bboxMaxLon: undefined, bboxMaxLat: undefined, debouncedBboxMinLon: undefined, debouncedBboxMinLat: undefined, debouncedBboxMaxLon: undefined, debouncedBboxMaxLat: undefined }),
 }))
 
 export function useSampleFilter(): SampleFilterState {
