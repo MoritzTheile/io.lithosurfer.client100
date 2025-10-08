@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { getSamplesGeoFeatureCollection, getSamplesCount } from '../features/api'
+import type { GeoJSONFeatureCollection } from '../features/api'
 import { useGuardedSamplesGeoQuery } from '../features/useSamplesQuery'
 import { FullscreenIcon } from '../../../lib/icons'
 import { useSampleSelection } from '../features/selection'
@@ -27,6 +28,19 @@ export default function SamplesMap({ isVisible, onOpenDetail }: { isVisible?: bo
   const selectionRef = useRef({ selectionMode, selectionAction })
   const hoverPopupRef = useRef<mapboxgl.Popup | null>(null)
   const selectedIdsRef = useRef<Set<string>>(new Set(Array.from(selectedIds).map(String)))
+  const latestGeoDataRef = useRef<GeoJSONFeatureCollection | null>(null)
+  const allowGeoRef = useRef<boolean>(false)
+
+  // React Query-powered data flow: count -> gate geojson (guarded hook)
+  const {
+    allowGeo,
+    data: geoData,
+    isLoading: isGeoLoading,
+    isFetching: isGeoFetching,
+    countData,
+    isCountLoading,
+    isCountFetching,
+  } = useGuardedSamplesGeoQuery(MAX_FEATURES_FOR_MAP)
 
   // Keep latest params in refs for event handlers
   const paramsRef = useRef({ debouncedSearchText, allowedAccess, createdByIdEquals, bboxMinLat, bboxMaxLat, bboxMinLon, bboxMaxLon })
@@ -43,6 +57,14 @@ export default function SamplesMap({ isVisible, onOpenDetail }: { isVisible?: bo
   useEffect(() => {
     selectedIdsRef.current = new Set(Array.from(selectedIds).map(String))
   }, [selectedIds])
+
+  // Keep latest geo permissions/data for use in map load/style.load handlers
+  useEffect(() => {
+    allowGeoRef.current = allowGeo
+  }, [allowGeo])
+  useEffect(() => {
+    latestGeoDataRef.current = geoData ?? null
+  }, [geoData])
 
   function repositionMapboxControls() {
     const map = mapRef.current
@@ -166,6 +188,14 @@ export default function SamplesMap({ isVisible, onOpenDetail }: { isVisible?: bo
           // Initialize base layer filter to avoid hiding when selection toggles
           applySelectedFilterIfPresent()
           applySelectedFilterIfPresent()
+          // If geo data already exists (e.g., from cache), apply it now
+          try {
+            const src = mapRef.current.getSource('samples') as mapboxgl.GeoJSONSource | undefined
+            if (allowGeoRef.current && latestGeoDataRef.current && src) {
+              src.setData(passthroughGeojson(latestGeoDataRef.current) as any)
+              applySelectedFilterIfPresent()
+            }
+          } catch {}
           const showHover = (e: mapboxgl.MapMouseEvent & { features?: any[] }) => {
             if (!mapRef.current || !e.features || e.features.length === 0) return
             const feature = e.features[0]
@@ -245,6 +275,18 @@ export default function SamplesMap({ isVisible, onOpenDetail }: { isVisible?: bo
     mapRef.current.on('load', onLoad)
     mapRef.current.on('style.load', onLoad)
     mapRef.current.on('style.load', repositionMapboxControls)
+    mapRef.current.on('style.load', () => {
+      // Re-apply latest geo data after style changes (sources/layers reset)
+      const map = mapRef.current
+      if (!map) return
+      try {
+        const src = map.getSource('samples') as mapboxgl.GeoJSONSource | undefined
+        if (allowGeoRef.current && latestGeoDataRef.current && src) {
+          src.setData(passthroughGeojson(latestGeoDataRef.current) as any)
+          applySelectedFilterIfPresent()
+        }
+      } catch {}
+    })
     mapRef.current.on('style.load', () => {
       if (mapRef.current) {
         try { mapRef.current.setProjection(projectionId as any) } catch {}
@@ -414,16 +456,6 @@ export default function SamplesMap({ isVisible, onOpenDetail }: { isVisible?: bo
     }
   }, [isVisible])
 
-  // React Query-powered data flow: count -> gate geojson (guarded hook)
-  const {
-    allowGeo,
-    data: geoData,
-    isLoading: isGeoLoading,
-    isFetching: isGeoFetching,
-    countData,
-    isCountLoading,
-    isCountFetching,
-  } = useGuardedSamplesGeoQuery(MAX_FEATURES_FOR_MAP)
 
   useEffect(() => {
     setInternalCount(countData ?? null)
