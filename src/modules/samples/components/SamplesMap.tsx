@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { getSamplesGeoFeatureCollection, getSamplesCount } from '../features/api'
+import { useSamplesCountQuery, useSamplesGeoFeatureCollectionQuery } from '../features/useSamplesQuery'
 import { FullscreenIcon } from '../../../lib/icons'
 import { useSampleSelection } from '../features/selection'
 import { useSampleFilter } from '../features/sampleFilter'
@@ -14,7 +15,6 @@ export default function SamplesMap({ isVisible, onOpenDetail }: { isVisible?: bo
   const { debouncedSearchText, allowedAccess, createdByIdEquals, setBbox, bboxMinLat, bboxMaxLat, bboxMinLon, bboxMaxLon } = useSampleFilter()
   const { selectedIds, toggle, selectMany, deselectMany } = useSampleSelection()
   const [isLoading, setIsLoading] = useState(false)
-  const latestRequestIdRef = useRef(0)
   const EMPTY_GEOJSON = { type: 'FeatureCollection', features: [] } as const
   const MAX_FEATURES_FOR_MAP = 100000
   const [internalCount, setInternalCount] = useState<number | null>(null)
@@ -55,14 +55,12 @@ export default function SamplesMap({ isVisible, onOpenDetail }: { isVisible?: bo
     }
   }
 
-  function finishLoadingWithMinDelay(startedAtMs: number, requestId: number) {
+  function finishLoadingWithMinDelay(startedAtMs: number) {
     const MIN_VISIBLE_MS = 300
     const elapsed = performance.now() - startedAtMs
     const remaining = Math.max(0, MIN_VISIBLE_MS - elapsed)
     window.setTimeout(() => {
-      if (requestId === latestRequestIdRef.current) {
-        setIsLoading(false)
-      }
+      setIsLoading(false)
     }, remaining)
   }
 
@@ -415,66 +413,43 @@ export default function SamplesMap({ isVisible, onOpenDetail }: { isVisible?: bo
     }
   }, [isVisible])
 
+  // React Query-powered data flow: count -> gate geojson
+  const {
+    data: countData,
+    isLoading: isCountLoading,
+    isFetching: isCountFetching,
+  } = useSamplesCountQuery()
+  const allowGeo = (countData ?? 0) <= MAX_FEATURES_FOR_MAP
+  const {
+    data: geoData,
+    isLoading: isGeoLoading,
+    isFetching: isGeoFetching,
+  } = useSamplesGeoFeatureCollectionQuery(allowGeo)
+
+  useEffect(() => {
+    setInternalCount(countData ?? null)
+  }, [countData])
+
+  useEffect(() => {
+    const startedAt = performance.now()
+    const loading = (isCountLoading || isCountFetching) || (allowGeo && (isGeoLoading || isGeoFetching))
+    if (loading) setIsLoading(true)
+    else finishLoadingWithMinDelay(startedAt)
+  }, [isCountLoading, isCountFetching, isGeoLoading, isGeoFetching, allowGeo])
+
   useEffect(() => {
     if (!mapRef.current) return
     const map = mapRef.current
-    const existingSource = map.getSource('samples') as mapboxgl.GeoJSONSource | undefined
-    const debounceMs = 1800
-    const timerId = window.setTimeout(async () => {
-      try {
-        setIsLoading(true)
-        // Always check count first to gate heavy fetches
-        let cnt = 0
-        try {
-          cnt = await getSamplesCount({
-            nameContains: debouncedSearchText || undefined,
-            allowedAccess: allowedAccess,
-            createdByIdEquals,
-            minLat: bboxMinLat,
-            maxLat: bboxMaxLat,
-            minLon: bboxMinLon,
-            maxLon: bboxMaxLon,
-          })
-          setInternalCount(cnt)
-        } catch (e) {
-          // eslint-disable-next-line no-console
-          console.error('Failed to fetch count', e)
-        }
-        if (cnt > MAX_FEATURES_FOR_MAP) {
-          existingSource?.setData(EMPTY_GEOJSON as any)
-          setIsLoading(false)
-          return
-        }
-
-        const requestId = ++latestRequestIdRef.current
-        const startedAt = performance.now()
-        // Clear outdated data while fetching
-        existingSource?.setData(EMPTY_GEOJSON as any)
-        const geojson = await getSamplesGeoFeatureCollection({
-          nameContains: debouncedSearchText || undefined,
-          allowedAccess: allowedAccess,
-          createdByIdEquals,
-          minLat: bboxMinLat,
-          maxLat: bboxMaxLat,
-          minLon: bboxMinLon,
-          maxLon: bboxMaxLon,
-        })
-        const source = map.getSource('samples') as mapboxgl.GeoJSONSource | undefined
-        if (requestId === latestRequestIdRef.current) {
-          source?.setData(passthroughGeojson(geojson) as any)
-        }
-        applySelectedFilterIfPresent()
-        finishLoadingWithMinDelay(startedAt, requestId)
-      } catch (e) {
-        // eslint-disable-next-line no-console
-        console.error('Failed to refresh GeoJSON', e)
-      }
-    }, debounceMs)
-
-    return () => {
-      window.clearTimeout(timerId)
+    const source = map.getSource('samples') as mapboxgl.GeoJSONSource | undefined
+    if (!allowGeo) {
+      source?.setData(EMPTY_GEOJSON as any)
+      return
     }
-  }, [debouncedSearchText, allowedAccess, createdByIdEquals, bboxMinLat, bboxMaxLat, bboxMinLon, bboxMaxLon])
+    if (geoData) {
+      source?.setData(passthroughGeojson(geoData) as any)
+      applySelectedFilterIfPresent()
+    }
+  }, [geoData, allowGeo])
 
   return (
     <div className={`relative w-full h-[70vh]`} id="samples-map-root">
