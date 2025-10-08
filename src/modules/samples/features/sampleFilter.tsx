@@ -86,7 +86,27 @@ const useSampleFilterStore = create<SampleFilterState>((set) => ({
     }
     set({ bboxMinLon: undefined, bboxMinLat: undefined, bboxMaxLon: undefined, bboxMaxLat: undefined, debouncedBboxMinLon: undefined, debouncedBboxMinLat: undefined, debouncedBboxMaxLon: undefined, debouncedBboxMaxLat: undefined, page: 0 })
   },
-  clearFilters: () => set({ searchText: '', createdByIdEquals: undefined, lithoRegion: undefined, page: 0, bboxMinLon: undefined, bboxMinLat: undefined, bboxMaxLon: undefined, bboxMaxLat: undefined, debouncedBboxMinLon: undefined, debouncedBboxMinLat: undefined, debouncedBboxMaxLon: undefined, debouncedBboxMaxLat: undefined }),
+  clearFilters: () => {
+    if (typeof window !== 'undefined') {
+      if (debounceTimer) window.clearTimeout(debounceTimer)
+      if (bboxDebounceTimer) window.clearTimeout(bboxDebounceTimer)
+    }
+    set({
+      searchText: '',
+      debouncedSearchText: '',
+      createdByIdEquals: undefined,
+      lithoRegion: undefined,
+      page: 0,
+      bboxMinLon: undefined,
+      bboxMinLat: undefined,
+      bboxMaxLon: undefined,
+      bboxMaxLat: undefined,
+      debouncedBboxMinLon: undefined,
+      debouncedBboxMinLat: undefined,
+      debouncedBboxMaxLon: undefined,
+      debouncedBboxMaxLat: undefined,
+    })
+  },
 }))
 
 export function useSampleFilter(): SampleFilterState {
