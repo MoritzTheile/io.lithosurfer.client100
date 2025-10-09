@@ -69,7 +69,7 @@ export default function Samples() {
       <LargeModal
         isOpen={!!selctedId}
         onClose={() => { setSelctedId(undefined) }}
-        title={<span>Sample {selctedId}</span>}
+        title={<span>&nbsp;</span>}
       >
           <SampleLoader id={selctedId}>
             {(sample) => <SampleDetailViewer sample={sample} />}

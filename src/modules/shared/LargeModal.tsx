@@ -1,4 +1,5 @@
 import React, { PropsWithChildren, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 
 type LargeModalProps = PropsWithChildren<{
   isOpen: boolean
@@ -18,12 +19,21 @@ export default function LargeModal({ isOpen, onClose, title, rightActions, child
     return () => window.removeEventListener('keydown', onKey)
   }, [isOpen, onClose])
 
+  useEffect(() => {
+    if (!isOpen) return
+    const { overflow } = document.body.style
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = overflow
+    }
+  }, [isOpen])
+
   if (!isOpen) return null
 
-  return (
-    <div className="fixed inset-0 z-50">
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="absolute inset-0 z-10 bg-white overflow-auto">
+  return createPortal(
+    <div className="fixed inset-0 z-50" role="dialog" aria-modal="true">
+      <div className="fixed inset-0 bg-black/40" onClick={onClose} />
+      <div className="fixed inset-0 z-10 bg-white overflow-auto">
         <div className="sticky top-0 flex items-center justify-between border-b px-4 py-3 bg-white">
           <h2 className="text-lg font-semibold">{title}</h2>
           <div className="flex items-center gap-2">
@@ -36,7 +46,7 @@ export default function LargeModal({ isOpen, onClose, title, rightActions, child
         </div>
       </div>
     </div>
-  )
+  , document.body)
 }
 
 
