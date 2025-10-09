@@ -6,10 +6,14 @@ type SelectionState = {
   selectMany: (ids: string[]) => void
   deselectMany: (ids: string[]) => void
   clear: () => void
+  selctedId?: string
+  setSelctedId: (id?: string) => void
 }
 
 export const useSampleSelection = create<SelectionState>((set) => ({
   selectedIds: new Set<string>(),
+  selctedId: undefined,
+  setSelctedId: (id?: string) => set({ selctedId: id }),
   toggle: (id: string) =>
     set((state) => {
       const next = new Set(state.selectedIds)

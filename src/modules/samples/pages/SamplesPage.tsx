@@ -10,6 +10,7 @@ import { getSampleWithLocationById } from '../features/api'
 import LargeModal from '../../shared/LargeModal'
 import SampleLoader from '../components/SampleLoader'
 import SampleDetailViewer from '../components/SampleDetailViewer'
+import { useSampleSelection } from '../features/selection'
 
 export default function Samples() {
 
@@ -19,7 +20,7 @@ export default function Samples() {
   
   const totalCount = data?.totalCount ?? 0
 
-  const [detailId, setDetailId] = useState<string | undefined>(undefined)
+  const { selctedId, setSelctedId } = useSampleSelection()
 
   return (
     <div className="space-y-4">
@@ -60,17 +61,17 @@ export default function Samples() {
       </div>
       <SelectionBar />
       <div className={mode === 'map' ? '' : 'hidden'}>
-        <SamplesMap isVisible={mode === 'map'} onOpenDetail={(id) => setDetailId(id)} />
+        <SamplesMap isVisible={mode === 'map'} onOpenDetail={(id) => setSelctedId(id)} />
       </div>
       <div className={mode === 'table' ? '' : 'hidden'}>
         <SamplesList />
       </div>
       <LargeModal
-        isOpen={!!detailId}
-        onClose={() => { setDetailId(undefined) }}
-        title={<span>Sample {detailId}</span>}
+        isOpen={!!selctedId}
+        onClose={() => { setSelctedId(undefined) }}
+        title={<span>Sample {selctedId}</span>}
       >
-          <SampleLoader id={detailId}>
+          <SampleLoader id={selctedId}>
             {(sample) => <SampleDetailViewer sample={sample} />}
           </SampleLoader>
       </LargeModal>
