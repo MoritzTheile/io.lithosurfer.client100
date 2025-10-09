@@ -64,7 +64,7 @@ export default function Samples() {
         <SamplesMap isVisible={mode === 'map'} onOpenDetail={(id) => setSelctedId(id)} />
       </div>
       <div className={mode === 'table' ? '' : 'hidden'}>
-        <SamplesList />
+        <SamplesList  onOpenDetail={(id) => {setSelctedId(id); console.log('setSelctedId', id)}} />
       </div>
       <LargeModal
         isOpen={!!selctedId}

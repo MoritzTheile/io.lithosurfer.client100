@@ -6,7 +6,7 @@ import { useSampleSelection } from '../features/selection'
 
 type Row = any
 
-export default function SamplesList() {
+export default function SamplesList( {onOpenDetail} : { onOpenDetail?: (id: string) => void }) {
   const { setPage, setSize, page, size } = useSampleFilter()
   const { data, isLoading, isError, error } = useSamplesQuery()
   const { selectedIds, toggle, selectMany, deselectMany } = useSampleSelection()
@@ -57,10 +57,8 @@ export default function SamplesList() {
               <tr
                 key={id}
                 className="odd:bg-white even:bg-gray-50 hover:bg-gray-100 cursor-pointer"
-                onClick={() => {
-                  window.history.pushState({}, '', `/samples/${id}`)
-                  const navEvt = new PopStateEvent('popstate')
-                  dispatchEvent(navEvt)
+                onClick={() => { 
+                  if (onOpenDetail) onOpenDetail(String(id));
                 }}
               >
                 <td className="px-3 py-2 border-b w-8">
