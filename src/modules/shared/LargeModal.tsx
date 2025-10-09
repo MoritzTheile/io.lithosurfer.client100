@@ -28,6 +28,14 @@ export default function LargeModal({ isOpen, onClose, title, rightActions, child
     }
   }, [isOpen])
 
+  // Close on browser back if a history entry was pushed elsewhere
+  useEffect(() => {
+    if (!isOpen) return
+    const onPop = () => onClose()
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  }, [isOpen, onClose])
+
   if (!isOpen) return null
 
   return createPortal(
