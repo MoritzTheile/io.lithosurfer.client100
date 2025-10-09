@@ -8,6 +8,8 @@ import { MapIcon, TableIcon } from '../../../lib/icons'
 import { useSamplesQuery } from '../features/useSamplesQuery'
 import { getSampleWithLocationById } from '../features/api'
 import LargeModal from '../../shared/LargeModal'
+import SampleLoader from '../components/SampleLoader'
+import SampleDetailViewer from '../components/SampleDetailViewer'
 
 export default function Samples() {
 
@@ -17,19 +19,7 @@ export default function Samples() {
   
   const totalCount = data?.totalCount ?? 0
 
-  const [detailId, setDetailId] = useState<string | null>(null)
-  const [detailData, setDetailData] = useState<any | null>(null)
-  const [detailLoading, setDetailLoading] = useState(false)
-
-  useEffect(() => {
-    if (!detailId) return
-    let cancelled = false
-    setDetailLoading(true)
-    getSampleWithLocationById(detailId)
-      .then((d) => { if (!cancelled) setDetailData(d) })
-      .finally(() => { if (!cancelled) setDetailLoading(false) })
-    return () => { cancelled = true }
-  }, [detailId])
+  const [detailId, setDetailId] = useState<string | undefined>(undefined)
 
   return (
     <div className="space-y-4">
@@ -77,17 +67,12 @@ export default function Samples() {
       </div>
       <LargeModal
         isOpen={!!detailId}
-        onClose={() => { setDetailId(null); setDetailData(null) }}
+        onClose={() => { setDetailId(undefined) }}
         title={<span>Sample {detailId}</span>}
-        rightActions={detailLoading ? (
-          <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-gray-400/30 border-t-gray-600" />
-        ) : null}
       >
-        {detailData ? (
-          <pre className="text-xs whitespace-pre-wrap break-words">{JSON.stringify(detailData, null, 2)}</pre>
-        ) : (
-          <div className="text-sm text-gray-600">{detailLoading ? 'Loading…' : 'No details found.'}</div>
-        )}
+          <SampleLoader id={detailId}>
+            {(sample) => <SampleDetailViewer sample={sample} />}
+          </SampleLoader>
       </LargeModal>
     </div>
   )

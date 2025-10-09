@@ -5,8 +5,9 @@ export default function SampleDetailViewer({ sample }: { sample: SampleRecord })
   const [showRawJson, setShowRawJson] = React.useState(false)
   return (
     <div className="space-y-4">
+      <h1 className="text-2xl font-semibold">Sample {String((sample as any)?.id ?? '')}</h1>
+
       <div className="flex items-center gap-2">
-        <h2 className="text-xl font-semibold">Details</h2>
         <button
           className="rounded-md border px-3 py-1 text-sm"
           onClick={() => setShowRawJson((v) => !v)}
@@ -20,7 +21,7 @@ export default function SampleDetailViewer({ sample }: { sample: SampleRecord })
           <pre className="p-4 text-xs overflow-auto whitespace-pre-wrap">{JSON.stringify(sample, null, 2)}</pre>
         </div>
       ) : (
-        <div className="text-sm text-gray-600">Click "Show raw json" to view the payload.</div>
+        <div className="text-sm text-gray-600">&nbsp;</div>
       )}
     </div>
   )

@@ -10,7 +10,6 @@ export default function SampleDetailPage() {
     <div className="space-y-4">
       <div className="flex items-center gap-2">
         <button className="rounded-md border px-3 py-1 text-sm" onClick={() => navigate(-1)}>Back</button>
-        <h1 className="text-2xl font-semibold">Sample {id}</h1>
       </div>
       <SampleLoader id={id}>
         {(sample) => <SampleDetailViewer sample={sample} />}
