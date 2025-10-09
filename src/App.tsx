@@ -2,7 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import Layout from './Layout'
 import ProtectedRoute from './lib/ProtectedRoute'
 import { Login, Account, Register, Activate, ResetPassword, ResetPasswordFinish } from './modules/auth'
-import { Samples, SampleDetail } from './modules/samples'
+import { Samples } from './modules/samples'
 import { ACCESS_TOKEN_STORAGE_KEY } from './lib/config'
 
 export default function App() {
@@ -31,14 +31,7 @@ export default function App() {
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/samples/:id"
-            element={
-              <ProtectedRoute>
-                <SampleDetail />
-              </ProtectedRoute>
-            }
-          />
+          {/* Sample detail page removed; modal detail flow is used instead */}
           <Route path="*" element={<Navigate to="/account" replace />} />
         </Routes>
     </Layout>
